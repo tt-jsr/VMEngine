@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VirtualMachine", "VirtualMachine.vcxproj", "{D68491B4-D047-4261-A748-4665E3B4F4B3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmtest", "..\vmtest\vmtest.vcxproj", "{73C5282E-3BBD-4B04-9D2A-3A381B747E0C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D68491B4-D047-4261-A748-4665E3B4F4B3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D68491B4-D047-4261-A748-4665E3B4F4B3}.Debug|Win32.Build.0 = Debug|Win32
+		{D68491B4-D047-4261-A748-4665E3B4F4B3}.Release|Win32.ActiveCfg = Release|Win32
+		{D68491B4-D047-4261-A748-4665E3B4F4B3}.Release|Win32.Build.0 = Release|Win32
+		{73C5282E-3BBD-4B04-9D2A-3A381B747E0C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{73C5282E-3BBD-4B04-9D2A-3A381B747E0C}.Debug|Win32.Build.0 = Debug|Win32
+		{73C5282E-3BBD-4B04-9D2A-3A381B747E0C}.Release|Win32.ActiveCfg = Release|Win32
+		{73C5282E-3BBD-4B04-9D2A-3A381B747E0C}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

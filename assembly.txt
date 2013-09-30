@@ -1,0 +1,45 @@
+[value] := Either a integer or a quoted string
+[word]   := unquoted text
+
+Machine registers
+---------------------------------------------
+Certain instructions will set various register flags.
+These flags are set by the 'test' and 'testim' instructions
+
+Z: The zero flag
+    Used by 'jumpz', 'jumpltz', 'jumpgtz'
+GT: Greater then zero
+    'jumpgt', 'jumpgtz'
+LT: Less then zero
+    'jumplt', 'jumpltz'
+
+HALT: Halt the machine
+    Set by the 'halt' instruction
+
+Data instructions
+--------------------------------
+push [value]
+    Push the value to the top of the stack
+pop
+    Pop a value from the top of stack. The value
+    is discarded
+
+load [word]
+    Push a value stored with the given name into the
+    top of stack
+
+store [word]
+    Store the value at the top of stack into the given
+    named location. The value is popped from the stack
+
+Test and compare
+------------------------------------------------
+test
+    Compare the top two values on the stack and set
+    the LT, Z or GT register flags. The stack remains
+    unchanged.
+
+testim [value]
+    Compare the top value on the stack with the immediate
+    value and set the LT, Z or GT register flags.
+    The stack remains unchanged.
