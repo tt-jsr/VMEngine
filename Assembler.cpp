@@ -137,6 +137,47 @@ namespace
         return new vm::Jump();
     }
 
+    vm::Instruction *ParseContEQ(const std::string& line, int& pos, std::string& targetName)
+    {
+        SkipWS(line, pos);
+        targetName = CollectLabel(line, pos);
+        return new vm::ContEQ();
+    }
+
+    vm::Instruction *ParseContNEQ(const std::string& line, int& pos, std::string& targetName)
+    {
+        SkipWS(line, pos);
+        targetName = CollectLabel(line, pos);
+        return new vm::ContNEQ();
+    }
+
+    vm::Instruction *ParseContGTEQ(const std::string& line, int& pos, std::string& targetName)
+    {
+        SkipWS(line, pos);
+        targetName = CollectLabel(line, pos);
+        return new vm::ContGTEQ();
+    }
+
+    vm::Instruction *ParseContGT(const std::string& line, int& pos, std::string& targetName)
+    {
+        SkipWS(line, pos);
+        targetName = CollectLabel(line, pos);
+        return new vm::ContGT();
+    }
+
+    vm::Instruction *ParseContLTEQ(const std::string& line, int& pos, std::string& targetName)
+    {
+        SkipWS(line, pos);
+        targetName = CollectLabel(line, pos);
+        return new vm::ContLTEQ();
+    }
+
+    vm::Instruction *ParseContLT(const std::string& line, int& pos, std::string& targetName)
+    {
+        SkipWS(line, pos);
+        targetName = CollectLabel(line, pos);
+        return new vm::ContLT();
+    }
     vm::Instruction *ParseCall(const std::string& line, int& pos, std::string& targetName)
     {
         SkipWS(line, pos);
@@ -201,6 +242,16 @@ namespace
         SkipWS(line, pos);
         std::string s = CollectWord(line, pos);
         return new vm::StoreVariable(s);
+    }
+
+    vm::Instruction *ParseDup(const std::string& line, int& pos)
+    {
+        return new vm::Dup();
+    }
+
+    vm::Instruction *ParseSwap(const std::string& line, int& pos)
+    {
+        return new vm::Swap();
     }
 }
 
@@ -340,6 +391,48 @@ namespace vm
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
+            else if (s == "conte")
+            {
+                std::string targetName;
+                Instruction *pInst = ParseContEQ(line, pos, targetName);
+                AddLabelTarget(targetName, pInst);
+                machine.code.AddInstruction( pInst );
+            }
+            else if (s == "contne")
+            {
+                std::string targetName;
+                Instruction *pInst = ParseContNEQ(line, pos, targetName);
+                AddLabelTarget(targetName, pInst);
+                machine.code.AddInstruction( pInst );
+            }
+            else if (s == "contgte")
+            {
+                std::string targetName;
+                Instruction *pInst = ParseContGTEQ(line, pos, targetName);
+                AddLabelTarget(targetName, pInst);
+                machine.code.AddInstruction( pInst );
+            }
+            else if (s == "contgt")
+            {
+                std::string targetName;
+                Instruction *pInst = ParseContGT(line, pos, targetName);
+                AddLabelTarget(targetName, pInst);
+                machine.code.AddInstruction( pInst );
+            }
+            else if (s == "contlte")
+            {
+                std::string targetName;
+                Instruction *pInst = ParseContLTEQ(line, pos, targetName);
+                AddLabelTarget(targetName, pInst);
+                machine.code.AddInstruction( pInst );
+            }
+            else if (s == "contlt")
+            {
+                std::string targetName;
+                Instruction *pInst = ParseContLT(line, pos, targetName);
+                AddLabelTarget(targetName, pInst);
+                machine.code.AddInstruction( pInst );
+            }
             else if (s == "call")
             {
                 std::string targetName;
@@ -373,6 +466,10 @@ namespace vm
                 machine.code.AddInstruction( ParsePush(line, pos));
             else if (s == "pop")
                 machine.code.AddInstruction( ParsePop(line, pos));
+            else if (s == "dup")
+                machine.code.AddInstruction( ParseDup(line, pos));
+            else if (s == "swap")
+                machine.code.AddInstruction( ParseSwap(line, pos));
 			else
 			{
                 std::stringstream strm;

@@ -26,7 +26,7 @@ namespace vm
         // Get a variable using scoping rules
         bool GetVariable(const std::string& name, Data *&);
 
-        // Store a variable using scopting rules
+        // Store a variable using scoping rules
         bool StoreVariable(const std::string& name, Data *);
 
         bool GetGlobalVariable(const std::string& name, Data *&);

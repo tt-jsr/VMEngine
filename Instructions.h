@@ -124,6 +124,66 @@ namespace vm
         void SetLabelTarget(int n) {ip = n;}
         int ip;
     };
+        
+    class ContEQ : public Instruction
+    {
+	public:
+        ContEQ();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+        void SetLabelTarget(int n) {ipTarget = n;}
+        int ipTarget;
+    };
+
+    class ContNEQ : public Instruction
+    {
+	public:
+        ContNEQ();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+        void SetLabelTarget(int n) {ipTarget = n;}
+        int ipTarget;
+    };
+
+    class ContGTEQ : public Instruction
+    {
+	public:
+        ContGTEQ();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+        void SetLabelTarget(int n) {ipTarget = n;}
+        int ipTarget;
+    };
+
+    class ContGT : public Instruction
+    {
+	public:
+        ContGT();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+        void SetLabelTarget(int n) {ipTarget = n;}
+        int ipTarget;
+    };
+
+    class ContLTEQ : public Instruction
+    {
+	public:
+        ContLTEQ();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+        void SetLabelTarget(int n) {ipTarget = n;}
+        int ipTarget;
+    };
+
+    class ContLT : public Instruction
+    {
+	public:
+        ContLT();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+        void SetLabelTarget(int n) {ipTarget = n;}
+        int ipTarget;
+    };
 
     class Return : public Instruction
     {
@@ -220,6 +280,20 @@ namespace vm
     };
 
     class Pop : public Instruction
+    {
+	public:
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+    };
+
+    class Dup : public Instruction
+    {
+	public:
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+    };
+
+    class Swap : public Instruction
     {
 	public:
         void Execute(Machine& machine);

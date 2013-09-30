@@ -410,6 +410,114 @@ namespace vm
     }
 
     /*****************************************************/
+    ContEQ::ContEQ()
+    :ipTarget(0)
+    {}
+
+    void ContEQ::Execute (Machine& machine)
+    {
+        if (machine.registers.IsEQ() == false)
+        {
+            machine.registers.IP(ipTarget);
+        }
+    }
+
+    void ContEQ::Dump(std::ostream& strm)
+    {
+        strm << "conte: " << ipTarget << std::endl;
+    }
+
+    /*****************************************************/
+    ContNEQ::ContNEQ()
+    :ipTarget(0)
+    {}
+
+    void ContNEQ::Execute (Machine& machine)
+    {
+        if (machine.registers.IsEQ() == true)
+        {
+            machine.registers.IP(ipTarget);
+        }
+    }
+
+    void ContNEQ::Dump(std::ostream& strm)
+    {
+        strm << "contne: " << ipTarget << std::endl;
+    }
+
+    /*****************************************************/
+    ContGTEQ::ContGTEQ()
+    :ipTarget(0)
+    {}
+
+    void ContGTEQ::Execute (Machine& machine)
+    {
+        if (machine.registers.IsLT() == false)
+        {
+            machine.registers.IP(ipTarget);
+        }
+    }
+
+    void ContGTEQ::Dump(std::ostream& strm)
+    {
+        strm << "contlt: " << ipTarget << std::endl;
+    }
+
+    /*****************************************************/
+    ContGT::ContGT()
+    :ipTarget(0)
+    {}
+
+    void ContGT::Execute (Machine& machine)
+    {
+        if (machine.registers.IsLT() || machine.registers.IsEQ())
+        {
+            machine.registers.IP(ipTarget);
+        }
+    }
+
+    void ContGT::Dump(std::ostream& strm)
+    {
+        strm << "contgt: " << ipTarget << std::endl;
+    }
+
+    /*****************************************************/
+    ContLTEQ::ContLTEQ()
+    :ipTarget(0)
+    {}
+
+    void ContLTEQ::Execute (Machine& machine)
+    {
+        if (machine.registers.IsGT())
+        {
+            machine.registers.IP(ipTarget);
+        }
+    }
+
+    void ContLTEQ::Dump(std::ostream& strm)
+    {
+        strm << "contlteq: " << ipTarget << std::endl;
+    }
+
+    /*****************************************************/
+    ContLT::ContLT()
+    :ipTarget(0)
+    {}
+
+    void ContLT::Execute (Machine& machine)
+    {
+        if (machine.registers.IsGT() || machine.registers.IsEQ())
+        {
+            machine.registers.IP(ipTarget);
+        }
+    }
+
+    void ContLT::Dump(std::ostream& strm)
+    {
+        strm << "contlt: " << ipTarget << std::endl;
+    }
+
+    /*****************************************************/
     Call::Call()
     :ip(0)
     {}
@@ -545,6 +653,45 @@ namespace vm
 
     void Pop::Dump(std::ostream& strm)
     {
-        strm << "pop: " << std::endl;
+        strm << "pop " << std::endl;
+    }
+
+    /*****************************************************/
+    void Dup::Execute(Machine& machine)
+    {
+        Data *pData = machine.stack.Peek(0);
+        if (pData == nullptr)
+        {
+            throw std::exception("stack underflow");
+        }
+        Data *pNew = pData->Clone();
+        machine.stack.Push(pNew);
+    }
+
+    void Dup::Dump(std::ostream& strm)
+    {
+        strm << "dup " << std::endl;
+    }
+
+    /*****************************************************/
+    void Swap::Execute(Machine& machine)
+    {
+        Data *pData1 = machine.stack.Pop();
+        if (pData1 == nullptr)
+        {
+            throw std::exception("stack underflow");
+        }
+        Data *pData2 = machine.stack.Pop();
+        if (pData2 == nullptr)
+        {
+            throw std::exception("stack underflow");
+        }
+        machine.stack.Push(pData1);
+        machine.stack.Push(pData2);
+    }
+
+    void Swap::Dump(std::ostream& strm)
+    {
+        strm << "swap " << std::endl;
     }
 }
