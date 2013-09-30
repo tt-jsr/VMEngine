@@ -3,6 +3,34 @@
 #include "machine.h"
 #include "stdafx.h"
 #include "Data.h"
+#include "Function.h"
+
+namespace
+{
+    const vm::Data *ResolveVariable(vm::Machine& machine, vm::Data *pData)
+    {
+        if (pData == nullptr)
+        {
+            return pData;
+        }
+        if (pData->type == vm::Data::INT)
+        {
+            return pData;
+        }
+        if (pData->type == vm::Data::STRING)
+        {
+            return pData;
+        }
+        if (pData->type == vm::Data::VARIABLE)
+        {
+            vm::Variable *pVar = (vm::Variable *)pData;
+            vm::Data *p = nullptr;
+            machine.GetVariable(pVar->name, p);
+            return p;
+        }
+        
+    }
+}
 
 namespace vm
 {
@@ -15,8 +43,8 @@ namespace vm
     /***********************************************/
     void Test::Execute(Machine& machine)
     {
-        Data *d1 = machine.stack.Peek(0);
-        Data *d2 = machine.stack.Peek(1);
+        const Data *d1 = ResolveVariable(machine, machine.stack.Peek(0));
+        const Data *d2 = ResolveVariable(machine, machine.stack.Peek(1));
         if (d1 == nullptr || d2 == nullptr)
         {
             throw std::exception("Stack underflow");
@@ -70,23 +98,24 @@ namespace vm
 
     void TestIm::Execute(Machine& machine)
     {
-        Data *d1 = machine.stack.Peek(0);
+        const Data *d1 = ResolveVariable(machine, machine.stack.Peek(0));
         if (d1 == nullptr)
         {
             throw std::exception("Stack underflow");
         }
-        if (d1->type != pData->type)
+        const Data *pConstant = ResolveVariable(machine, pData);
+        if (d1->type != pConstant->type)
         {
             throw std::exception("Cannot compare types");
         }
         int result = 0;
         if (d1->type == Data::INT)
         {
-            result = ((Int *)d1)->n - ((Int *)pData)->n;
+            result = ((Int *)d1)->n - ((Int *)pConstant)->n;
         }
         if (d1->type == Data::STRING)
         {
-            result = ((String *)d1)->str.compare(((String *)pData)->str);
+            result = ((String *)d1)->str.compare(((String *)pConstant)->str);
         }
         if (result < 0)
             machine.registers.SetLT();
@@ -156,15 +185,19 @@ namespace vm
             delete d2;
             throw std::exception("Stack underflow");
         }
-        if (d1->type != d2->type)
+        const Data *a1 = ResolveVariable(machine, d1);
+        const Data *a2 = ResolveVariable(machine, d2);
+
+        if (a1->type != a2->type)
         {
             delete d1;
             delete d2;
             throw std::exception("Cannot add types");
         }
-        if (d1->type == Data::INT)
+
+        if (a1->type == Data::INT)
         {
-            int n = ((Int *)d1)->n + ((Int *)d2)->n;
+            int n = ((const Int *)a1)->n + ((const Int *)a2)->n;
             machine.stack.Push(n);
         }
         delete d1;
@@ -187,15 +220,17 @@ namespace vm
             delete d2;
             throw std::exception("Stack underflow");
         }
-        if (d1->type != d2->type)
+        const Data *a1 = ResolveVariable(machine, d1);
+        const Data *a2 = ResolveVariable(machine, d2);
+        if (a1->type != a2->type)
         {
             delete d1;
             delete d2;
             throw std::exception("Cannot subtract types");
         }
-        if (d1->type == Data::INT)
+        if (a1->type == Data::INT)
         {
-            int n = ((Int *)d1)->n - ((Int *)d2)->n;
+            int n = ((const Int *)a1)->n - ((const Int *)a2)->n;
             machine.stack.Push(n);
         }
         delete d1;
@@ -218,21 +253,23 @@ namespace vm
             delete d2;
             throw std::exception("Stack underflow");
         }
-        if (d1->type != d2->type)
+        const Data *a1 = ResolveVariable(machine, d1);
+        const Data *a2 = ResolveVariable(machine, d2);
+        if (a1->type != a2->type)
         {
             delete d1;
             delete d2;
             throw std::exception("Cannot add types");
         }
-        if (d1->type == Data::STRING)
+        if (a1->type == Data::STRING)
         {
             delete d1;
             delete d2;
-            throw std::exception("Cannot multiple strings");
+            throw std::exception("Cannot multiply strings");
         }
-        if (d1->type == Data::INT)
+        if (a1->type == Data::INT)
         {
-            int n = ((Int *)d1)->n * ((Int *)d2)->n;
+            int n = ((const Int *)a1)->n * ((const Int *)a2)->n;
             machine.stack.Push(n);
         }
         delete d1;
@@ -255,15 +292,17 @@ namespace vm
             delete d2;
             throw std::exception("Stack underflow");
         }
-        if (d1->type != d2->type)
+        const Data *a1 = ResolveVariable(machine, d1);
+        const Data *a2 = ResolveVariable(machine, d2);
+        if (a1->type != a2->type)
         {
             delete d1;
             delete d2;
             throw std::exception("Cannot add types");
         }
-        if (d1->type == Data::INT)
+        if (a1->type == Data::INT)
         {
-            int n = ((Int *)d1)->n / ((Int *)d2)->n;
+            int n = ((const Int *)a1)->n / ((const Int *)a2)->n;
             machine.stack.Push(n);
         }
         delete d1;
@@ -525,8 +564,22 @@ namespace vm
     void Call::Execute (Machine& machine)
     {
         machine.PushLocalScope();
-        machine.callstack.push(machine.registers.IP());
-        machine.registers.IP(ip);
+        if (ip <= 0)
+        {
+            Function *pFunc = machine.LookupFunction(funcname);
+            if (pFunc == nullptr)
+            {
+                std::stringstream strm;
+                strm << "Function " << funcname << " not found";
+                throw std::exception(strm.str().c_str());
+            }
+            pFunc->OnExecute(machine);
+        }
+        else
+        {
+            machine.callstack.push(machine.registers.IP());
+            machine.registers.IP(ip);
+        }
     }
 
     void Call::Dump(std::ostream& strm)
@@ -534,6 +587,16 @@ namespace vm
         strm << "call: " << ip << std::endl;
     }
 
+    /*****************************************************/
+    void StoreBP::Execute (Machine& machine)
+    {
+        machine.registers.BP(machine.stack.Tos());
+    }
+
+    void StoreBP::Dump(std::ostream& strm)
+    {
+        strm << "storebp" << std::endl;
+    }
     /*****************************************************/
     Return::Return()
     {}
@@ -576,10 +639,13 @@ namespace vm
     {
         Data *pData;
         bool b = machine.GetVariable(name, pData);
-        if (b)
+        if (b == false)
         {
-            machine.stack.Push(pData->Clone());
+            std::stringstream strm;
+            strm << "Variable " << name << " does not exist";
+            throw std::exception (strm.str().c_str());
         }
+        machine.stack.Push(pData->Clone());
     }
 
     void LoadVariable::Dump(std::ostream& strm)
@@ -630,6 +696,10 @@ namespace vm
 
     void Push::Execute(Machine& machine)
     {
+        if (pData->type == Data::VARIABLE)
+        {
+            const Data *p = ResolveVariable(machine, pData);
+        }
         machine.stack.Push(pData->Clone());
     }
 

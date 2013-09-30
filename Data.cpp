@@ -22,6 +22,8 @@ namespace vm
         strm << "string: " << str;
     }
 
+    /**********************************************************/
+
     Int::Int(int n_)
     :Data(Data::INT)
      , n(n_)
@@ -46,6 +48,28 @@ namespace vm
     Data *Data::Create(const std::string& s)
     {
         return new String(s);
+    }
+
+    Data *Data::CreateVariable(const std::string& s)
+    {
+        return new Variable(s);
+    }
+
+    /**********************************************************/
+    Variable::Variable(const std::string& s)
+    :Data(Data::VARIABLE)
+     , name(s)
+    {}
+
+
+    Data *Variable::Clone()
+    {
+        return new Variable(name);
+    }
+
+    void Variable::Dump(std::ostream& strm)
+    {
+        strm << "variable: " << name;
     }
 }
 

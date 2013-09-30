@@ -7,7 +7,8 @@
 namespace vm
 {
     class Data;
-
+    class Function;
+    
     class Machine
     {
     public:
@@ -22,6 +23,9 @@ namespace vm
         Registers registers;
         Code code;
         std::stack<int> callstack;
+
+        bool RegisterFunction(const std::string& name, Function *);
+        Function *LookupFunction(const std::string& name);
 
         // Get a variable using scoping rules
         bool GetVariable(const std::string& name, Data *&);
@@ -42,9 +46,11 @@ namespace vm
         void DumpMachine(std::ostream&);
     private:
         typedef std::map<std::string, Data *> variablemap_t;
+        typedef std::map<std::string, Function *> functionmap_t;
         typedef std::vector<variablemap_t> variablescope_t;
         variablemap_t global_variables;
         variablescope_t local_variables;
+        functionmap_t functions;
     };
 }
 

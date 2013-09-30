@@ -18,6 +18,7 @@ namespace vm
         void Push(const std::string&);
         Data *Pop();
         void Clear();
+        int Tos();
     private:
         std::vector<Data *> stack;
         int tos;

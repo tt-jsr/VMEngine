@@ -123,6 +123,7 @@ namespace vm
         void Dump(std::ostream&);
         void SetLabelTarget(int n) {ip = n;}
         int ip;
+        std::string funcname;
     };
         
     class ContEQ : public Instruction
@@ -264,6 +265,12 @@ namespace vm
         void Execute(Machine& machine);
         void Dump(std::ostream&);
         std::string name;
+    };
+
+    class StoreBP : public Instruction
+    {
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
     };
 
     class Push : public Instruction

@@ -33,11 +33,15 @@ namespace vm
         void IncIP() {++ip;}
         void IP(int n) {ip = n;}
         int IP() const {return ip;}
+
+        void BP(int n) {bp = n;}
+        int BP() const {return bp;}
     private:
         int ip;
         bool lt;
         bool gt;
         bool eq;
+        bool bp;
         bool halt;
     };
 }

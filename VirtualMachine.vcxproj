@@ -74,6 +74,7 @@
     <ClInclude Include="Assembler.h" />
     <ClInclude Include="Code.h" />
     <ClInclude Include="Data.h" />
+    <ClInclude Include="Function.h" />
     <ClInclude Include="Instructions.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="Registers.h" />

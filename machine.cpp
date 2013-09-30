@@ -61,14 +61,30 @@ namespace vm
         {
             return;
         }
-        Instruction *inst = code.Get(registers.IP());
-        registers.IncIP();
-        inst->Execute(*this);
-        if (registers.IP() >= code.Size()-1)
+        if (registers.IP() >= code.Size())
         {
             // Ran off the end of the world
             throw std::exception ("Invalid IP address");
         }
+        Instruction *inst = code.Get(registers.IP());
+        registers.IncIP();
+        inst->Execute(*this);
+    }
+
+    bool Machine::RegisterFunction(const std::string& name, Function *pFunc)
+    {
+        auto p = functions.insert(functionmap_t::value_type(name, pFunc));
+        return p.second; 
+    }
+
+    Function *Machine::LookupFunction(const std::string& name)
+    {
+        auto it = functions.find(name);
+        if (it == functions.end())
+        {
+            return nullptr;
+        }
+        return it->second;
     }
 
     bool Machine::GetVariable(const std::string& name, Data *& pData)

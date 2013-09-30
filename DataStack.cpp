@@ -33,6 +33,11 @@ namespace vm
         stack.clear();
 	}
 
+    void DataStack::Tos()
+    {
+        return tos;
+    }
+
     void DataStack::Push(Data *d)
     {
         if (tos == (stack.size()))
