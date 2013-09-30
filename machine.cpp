@@ -64,9 +64,10 @@ namespace vm
         Instruction *inst = code.Get(registers.IP());
         registers.IncIP();
         inst->Execute(*this);
-        if (registers.IP() == code.Size()-1)
+        if (registers.IP() >= code.Size()-1)
         {
-            registers.SetHalt();
+            // Ran off the end of the world
+            throw std::exception ("Invalid IP address");
         }
     }
 

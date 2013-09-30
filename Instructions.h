@@ -299,5 +299,15 @@ namespace vm
         void Execute(Machine& machine);
         void Dump(std::ostream&);
     };
+
+    /***************************************************************/
+    // String instructions
+/*
+    class StrComp : public Instruction
+    {
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+    };
+    */
 }
 

@@ -1,17 +1,16 @@
 [value] := Either a integer or a quoted string
-[word]   := unquoted text
 
 Machine registers
 ---------------------------------------------
 Certain instructions will set various register flags.
 These flags are set by the 'test' and 'testim' instructions
 
-Z: The zero flag
-    Used by 'jumpz', 'jumpltz', 'jumpgtz'
-GT: Greater then zero
-    'jumpgt', 'jumpgtz'
-LT: Less then zero
-    'jumplt', 'jumpltz'
+EQ: The equality flag
+    Used by 'jumpe', 'jumplte', 'jumpgte'
+GT: Greater than
+    'jumpgt', 'jumpgte'
+LT: Less than
+    'jumplt', 'jumplte'
 
 HALT: Halt the machine
     Set by the 'halt' instruction
@@ -22,24 +21,34 @@ push [value]
     Push the value to the top of the stack
 pop
     Pop a value from the top of stack. The value
-    is discarded
+    is discarded.
 
-load [word]
+    Throws: std::exception if stack is empty
+
+load name
     Push a value stored with the given name into the
     top of stack
 
-store [word]
+store name
     Store the value at the top of stack into the given
-    named location. The value is popped from the stack
+    named location. The value is popped from the stack.
+
+    Throws: std::exception if stack is empty
 
 Test and compare
 ------------------------------------------------
 test
     Compare the top two values on the stack and set
-    the LT, Z or GT register flags. The stack remains
+    the LT, EQ or GT register flags. The stack remains
     unchanged.
+
+    Throws: std::exception if stack does not have two values.
+    Throws: std::exception if the value are not the same type.
 
 testim [value]
     Compare the top value on the stack with the immediate
-    value and set the LT, Z or GT register flags.
+    value and set the LT, EQ or GT register flags.
     The stack remains unchanged.
+
+    Throws: std::exception if stack is empty
+    Throws: std::exception if the values are not the same type.
