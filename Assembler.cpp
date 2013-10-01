@@ -7,7 +7,7 @@
 
 namespace
 {
-    class ParseContext;
+    struct ParseContext;
     void Throw(ParseContext& ctx, const char *msg);
 
     struct ParseContext
@@ -35,7 +35,7 @@ namespace
 
         bool IsDigit()
         {
-            if (line[0] >= '0' && line[0] <= '9')
+            if (line[pos] >= '0' && line[pos] <= '9')
                 return true;
             return false;
         }
@@ -75,11 +75,22 @@ namespace
         }
     }
 
-    int CollectInteger(ParseContext& ctx)
+    bool CollectInteger(ParseContext& ctx, int& n)
     {
         SkipWS(ctx);
+        if (ctx.IsDigit() == false)
+        {
+            return false;
+        }
+
         std::string s = CollectWord(ctx);
-        return strtol(s.c_str(), nullptr, 10);
+        if (s.size() == 0)
+        {
+            return false;
+        }
+
+        n = strtol(s.c_str(), nullptr, 10);
+        return true;
     }
 
     vm::Data *CollectData(ParseContext& ctx)
@@ -92,7 +103,11 @@ namespace
         }
         if (ctx.IsDigit())
         {
-            int n = CollectInteger(ctx);
+            int n = 0;
+            if (CollectInteger(ctx, n) == false)
+            {
+                return nullptr;
+            }
             return new vm::Int(n);
         }
         std::string s = CollectWord(ctx);
@@ -135,24 +150,32 @@ namespace
     {
         SkipWS(ctx);
         vm::Data *p = CollectData(ctx);
-        return new vm::Push(p);
+        vm::Push *pInst = new vm::Push(p);
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Pop *ParsePop(ParseContext& ctx)
     {
-        return new vm::Pop();
+        vm::Pop *pInst = new vm::Pop();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Test *ParseTest(ParseContext& ctx)
     {
-        return new vm::Test();
+        vm::Test *pInst = new vm::Test();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::TestIm *ParseTestIm(ParseContext& ctx)
     {
         SkipWS(ctx);
         vm::Data *p = CollectData(ctx);
-        return new vm::TestIm(p);
+        vm::TestIm *pInst = new vm::TestIm(p);
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::JumpEQ *ParseJumpEQ(ParseContext& ctx, std::string& targetName)
@@ -163,7 +186,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::JumpEQ();
+        vm::JumpEQ *pInst = new vm::JumpEQ();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::JumpNEQ *ParseJumpNEQ(ParseContext& ctx, std::string& targetName)
@@ -174,7 +199,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::JumpNEQ();
+        vm::JumpNEQ *pInst = new vm::JumpNEQ();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::JumpGTEQ *ParseJumpGTEQ(ParseContext& ctx, std::string& targetName)
@@ -185,7 +212,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::JumpGTEQ();
+        vm::JumpGTEQ *pInst = new vm::JumpGTEQ();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::JumpGT *ParseJumpGT(ParseContext& ctx, std::string& targetName)
@@ -196,7 +225,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::JumpGT();
+        vm::JumpGT *pInst = new vm::JumpGT();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::JumpLTEQ *ParseJumpLTEQ(ParseContext& ctx, std::string& targetName)
@@ -207,7 +238,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::JumpLTEQ();
+        vm::JumpLTEQ *pInst = new vm::JumpLTEQ();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::JumpLT *ParseJumpLT(ParseContext& ctx, std::string& targetName)
@@ -218,7 +251,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::JumpLT();
+        vm::JumpLT *pInst = new vm::JumpLT();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Jump *ParseJump(ParseContext& ctx, std::string& targetName)
@@ -229,7 +264,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::Jump();
+        vm::Jump *pInst = new vm::Jump();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::ContEQ *ParseContEQ(ParseContext& ctx, std::string& targetName)
@@ -240,7 +277,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::ContEQ();
+        vm::ContEQ *pInst = new vm::ContEQ();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::ContNEQ *ParseContNEQ(ParseContext& ctx, std::string& targetName)
@@ -251,7 +290,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::ContNEQ();
+        vm::ContNEQ *pInst = new vm::ContNEQ();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::ContGTEQ *ParseContGTEQ(ParseContext& ctx, std::string& targetName)
@@ -262,7 +303,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::ContGTEQ();
+        vm::ContGTEQ *pInst = new vm::ContGTEQ();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::ContGT *ParseContGT(ParseContext& ctx, std::string& targetName)
@@ -273,7 +316,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::ContGT();
+        vm::ContGT *pInst = new vm::ContGT();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::ContLTEQ *ParseContLTEQ(ParseContext& ctx, std::string& targetName)
@@ -284,7 +329,9 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::ContLTEQ();
+        vm::ContLTEQ *pInst = new vm::ContLTEQ();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::ContLT *ParseContLT(ParseContext& ctx, std::string& targetName)
@@ -295,19 +342,26 @@ namespace
         {
             Throw(ctx, "Target name is empty");
         }
-        return new vm::ContLT();
+        vm::ContLT *pInst = new vm::ContLT();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Call *ParseCall(ParseContext& ctx, std::string& targetName)
     {
         SkipWS(ctx);
-        int n = CollectInteger(ctx);
+        int n = 0;
+        if (CollectInteger(ctx, n) == false)
+        {
+            Throw(ctx, "Invalid arg count");
+        }
         targetName = CollectLabel(ctx);
         if (targetName.size() == 0)
         {
             Throw(ctx, "Target name is empty");
         }
         vm::Call *pCall = new vm::Call();
+        pCall->lineno = ctx.lineno;
         pCall->funcname = targetName;
         pCall->nargs = n;
         return pCall;
@@ -315,71 +369,97 @@ namespace
 
     vm::Halt *ParseHalt(ParseContext& ctx)
     {
-        return new vm::Halt();
+        vm::Halt *pInst = new vm::Halt();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Break *ParseBreak(ParseContext& ctx)
     {
-        return new vm::Break();
+        vm::Break *pInst = new vm::Break();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Return *ParseReturn(ParseContext& ctx)
     {
-        return new vm::Return();
+        vm::Return *pInst = new vm::Return();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Inc *ParseInc(ParseContext& ctx)
     {
-        return new vm::Inc();
+        vm::Inc *pInst = new vm::Inc();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Add *ParseAdd(ParseContext& ctx)
     {
-        return new vm::Add();
+        vm::Add *pInst = new vm::Add();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Subtract *ParseSubtract(ParseContext& ctx)
     {
-        return new vm::Subtract();
+        vm::Subtract *pInst = new vm::Subtract();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Multiply *ParseMultiply(ParseContext& ctx)
     {
-        return new vm::Multiply();
+        vm::Multiply *pInst = new vm::Multiply();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::IntDivide *ParseIntDivide(ParseContext& ctx)
     {
-        return new vm::IntDivide();
+        vm::IntDivide *pInst = new vm::IntDivide();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Dec *ParseDec(ParseContext& ctx)
     {
-        return new vm::Dec();
+        vm::Dec *pInst = new vm::Dec();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::LoadVariable *ParseLoadVariable(ParseContext& ctx)
     {
         SkipWS(ctx);
         std::string s = CollectWord(ctx);
-        return new vm::LoadVariable(s);
+        vm::LoadVariable *pInst = new vm::LoadVariable(s);
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::StoreVariable *ParseStoreVariable(ParseContext& ctx)
     {
         SkipWS(ctx);
         std::string s = CollectWord(ctx);
-        return new vm::StoreVariable(s);
+        vm::StoreVariable *pInst = new vm::StoreVariable(s);
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Dup *ParseDup(ParseContext& ctx)
     {
-        return new vm::Dup();
+        vm::Dup *pInst = new vm::Dup();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 
     vm::Swap *ParseSwap(ParseContext& ctx)
     {
-        return new vm::Swap();
+        vm::Swap *pInst = new vm::Swap();
+        pInst->lineno = ctx.lineno;
+        return pInst;
     }
 }
 

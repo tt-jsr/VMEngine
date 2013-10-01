@@ -5,7 +5,6 @@
 namespace vm
 {
     DataStack::DataStack(void)
-        :tos(0)
     {
     }
 
@@ -21,11 +20,16 @@ namespace vm
             strm << "Empty" << std::endl;
             return;
 		}
-        for (int idx = tos-1; idx >= 0; --idx)
+        for (size_t idx = stack.size()-1; idx >= 0; --idx)
         {
             stack[idx]->Dump(strm);
 			strm << std::endl;
         }
+    }
+
+    int DataStack::Size()
+    {
+        return (int)stack.size();
     }
 
     void DataStack::Clear()
@@ -35,61 +39,42 @@ namespace vm
 
     int DataStack::Tos()
     {
-        return tos;
+        return (int)stack.size();
     }
 
     void DataStack::Push(Data *d)
     {
-        if (tos == (stack.size()))
-        {
-            stack.push_back(d);
-        }
-        else
-        {
-            stack[tos] = d;
-        }
-        ++tos;
+        stack.push_back(d);
     }
 
     void DataStack::Push(const std::string& s)
     {
-        if (tos == (stack.size()))
-        {
-            stack.push_back(new String(s));
-        }
-        else
-        {
-            stack[tos] = new String(s);
-        }
-        ++tos;
+        stack.push_back(new String(s));
     }
 
     void DataStack::Push(int n)
     {
-        if (tos == stack.size())
-        {
-            stack.push_back(new Int(n));
-        }
-        else
-        {
-            stack[tos] = new Int(n);
-        }
-        ++tos;
+        stack.push_back(new Int(n));
     }
 
     Data *DataStack::Pop()
     {
-        if (tos == 0)
+        if (stack.size() == 0)
         {
             return nullptr;
         }
-        --tos;
-        return stack[tos];
+        Data *p = stack[stack.size()-1];
+        stack.pop_back();
+        return p;
     }
 
     Data *DataStack::Peek(int n)
     {
-        int idx = tos-n-1;
+        if (n < 0)
+        {
+            return nullptr;
+        }
+        int idx = (int)stack.size()-n-1;
         if (idx < 0)
         {
             return nullptr;

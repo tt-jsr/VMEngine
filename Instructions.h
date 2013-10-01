@@ -13,6 +13,8 @@ namespace vm
         virtual void Execute(Machine&) = 0;
         virtual void SetLabelTarget(int) {}
         virtual void Dump(std::ostream&) {}
+    public:
+        int lineno;
     };
 
     /********************************************/

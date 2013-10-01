@@ -30,11 +30,19 @@ namespace
         }
         return pData;
     }
+
+    void Throw(vm::Instruction *pInst, const char *msg)
+    {
+        std::stringstream strm;
+        strm << msg << " at line " << pInst->lineno;
+        throw std::exception(strm.str().c_str());
+    }
 }
 
 namespace vm
 {
     Instruction::Instruction()
+        :lineno(0)
     {}
 
     Instruction::~Instruction()
@@ -47,11 +55,11 @@ namespace vm
         const Data *d2 = ResolveVariable(machine, machine.stack.Peek(1));
         if (d1 == nullptr || d2 == nullptr)
         {
-            throw std::exception("Stack underflow");
+            Throw(this, "Stack underflow");
         }
         if (d1->type != d2->type)
         {
-            throw std::exception("Cannot compare types");
+            Throw(this, "Cannot compare types");
         }
         int result = 0;
         if (d1->type == Data::INT)
@@ -101,12 +109,12 @@ namespace vm
         const Data *d1 = ResolveVariable(machine, machine.stack.Peek(0));
         if (d1 == nullptr)
         {
-            throw std::exception("Stack underflow");
+            Throw(this, "Stack underflow");
         }
         const Data *pConstant = ResolveVariable(machine, pData);
         if (d1->type != pConstant->type)
         {
-            throw std::exception("Cannot compare types");
+            Throw(this, "Cannot compare types");
         }
         int result = 0;
         if (d1->type == Data::INT)
@@ -138,12 +146,12 @@ namespace vm
         Data *d1 = machine.stack.Peek(0);
         if (d1 == nullptr)
         {
-            throw std::exception("Stack underflow");
+            Throw(this, "Stack underflow");
         }
 
         if (d1->type != Data::INT)
         {
-            throw std::exception("Cannot increment non-int");
+            Throw(this, "Cannot increment non-int");
         }
         ++((Int *)d1)->n;
     }
@@ -159,12 +167,12 @@ namespace vm
         Data *d1 = machine.stack.Peek(0);
         if (d1 == nullptr)
         {
-            throw std::exception("Stack underflow");
+            Throw(this, "Stack underflow");
         }
 
         if (d1->type != Data::INT)
         {
-            throw std::exception("Cannot decrement non-int");
+            Throw(this, "Cannot decrement non-int");
         }
         --((Int *)d1)->n;
     }
@@ -183,7 +191,7 @@ namespace vm
         {
             delete d1;
             delete d2;
-            throw std::exception("Stack underflow");
+            Throw(this, "Stack underflow");
         }
         const Data *a1 = ResolveVariable(machine, d1);
         const Data *a2 = ResolveVariable(machine, d2);
@@ -192,7 +200,7 @@ namespace vm
         {
             delete d1;
             delete d2;
-            throw std::exception("Cannot add types");
+            Throw(this, "Cannot add types");
         }
 
         if (a1->type == Data::INT)
@@ -218,7 +226,7 @@ namespace vm
         {
             delete d1;
             delete d2;
-            throw std::exception("Stack underflow");
+            Throw(this, "Stack underflow");
         }
         const Data *a1 = ResolveVariable(machine, d1);
         const Data *a2 = ResolveVariable(machine, d2);
@@ -226,7 +234,7 @@ namespace vm
         {
             delete d1;
             delete d2;
-            throw std::exception("Cannot subtract types");
+            Throw(this, "Cannot subtract types");
         }
         if (a1->type == Data::INT)
         {
@@ -259,13 +267,13 @@ namespace vm
         {
             delete d1;
             delete d2;
-            throw std::exception("Cannot add types");
+            Throw(this, "Cannot add types");
         }
         if (a1->type == Data::STRING)
         {
             delete d1;
             delete d2;
-            throw std::exception("Cannot multiply strings");
+            Throw(this, "Cannot multiply strings");
         }
         if (a1->type == Data::INT)
         {
@@ -290,7 +298,7 @@ namespace vm
         {
             delete d1;
             delete d2;
-            throw std::exception("Stack underflow");
+            Throw(this, "Stack underflow");
         }
         const Data *a1 = ResolveVariable(machine, d1);
         const Data *a2 = ResolveVariable(machine, d2);
@@ -298,7 +306,7 @@ namespace vm
         {
             delete d1;
             delete d2;
-            throw std::exception("Cannot add types");
+            Throw(this, "Cannot add types");
         }
         if (a1->type == Data::INT)
         {
@@ -569,14 +577,30 @@ namespace vm
         machine.registers.NArgs(nargs);
         if (ip <= 0)
         {
+            // User defined function
             Function *pFunc = machine.LookupFunction(funcname);
             if (pFunc == nullptr)
             {
                 std::stringstream strm;
                 strm << "Function " << funcname << " not found";
-                throw std::exception(strm.str().c_str());
+                Throw(this, strm.str().c_str());
             }
-            pFunc->OnExecute(machine);
+            if (nargs > machine.stack.Size())
+            {
+                Throw(this, "Stack underflow");
+            }
+            for (int i = 0; i < nargs; ++i)
+            {
+                Data *p = machine.stack.Pop();
+                pFunc->args.push_back(p);
+            }
+            pFunc->pMachine = &machine;
+            pFunc->OnExecute();
+            // Cleanup here, user functions don't have a Return statement
+            machine.callstack.pop();
+            int n = machine.callstack.top();
+            machine.registers.NArgs(n);
+            machine.PopLocalScope();
         }
         else
         {
@@ -598,7 +622,7 @@ namespace vm
     {
         if (machine.callstack.empty())
         {
-            throw std::exception("Callstack underflow");
+            Throw(this, "Callstack underflow");
         }
         int n = machine.callstack.top();
         machine.callstack.pop();
@@ -639,7 +663,7 @@ namespace vm
         {
             std::stringstream strm;
             strm << "Variable " << name << " does not exist";
-            throw std::exception (strm.str().c_str());
+            Throw(this, strm.str().c_str());
         }
         machine.stack.Push(pData->Clone());
     }
@@ -659,7 +683,7 @@ namespace vm
         Data *pData = machine.stack.Pop();
         if (pData == nullptr)
         {
-            throw std::exception("stack underflow");
+            Throw(this, "stack underflow");
         }
         machine.StoreVariable(name, pData);
     }
@@ -695,6 +719,10 @@ namespace vm
         if (pData->type == Data::VARIABLE)
         {
             const Data *p = ResolveVariable(machine, pData);
+            if (p == nullptr)
+            {
+                Throw(this, "Variable not found");
+            }
         }
         machine.stack.Push(pData->Clone());
     }
@@ -712,7 +740,7 @@ namespace vm
         Data *pData = machine.stack.Pop();
         if (pData == nullptr)
         {
-            throw std::exception("stack underflow");
+            Throw(this, "stack underflow");
         }
         delete pData;
     }
@@ -728,7 +756,7 @@ namespace vm
         Data *pData = machine.stack.Peek(0);
         if (pData == nullptr)
         {
-            throw std::exception("stack underflow");
+            Throw(this, "stack underflow");
         }
         Data *pNew = pData->Clone();
         machine.stack.Push(pNew);
@@ -745,12 +773,12 @@ namespace vm
         Data *pData1 = machine.stack.Pop();
         if (pData1 == nullptr)
         {
-            throw std::exception("stack underflow");
+            Throw(this, "stack underflow");
         }
         Data *pData2 = machine.stack.Pop();
         if (pData2 == nullptr)
         {
-            throw std::exception("stack underflow");
+            Throw(this, "stack underflow");
         }
         machine.stack.Push(pData1);
         machine.stack.Push(pData2);

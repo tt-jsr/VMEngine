@@ -19,9 +19,9 @@ namespace vm
         Data *Pop();
         void Clear();
         int Tos();
+        int Size();
     private:
         std::vector<Data *> stack;
-        int tos;
     };
 }
 
