@@ -7,262 +7,293 @@
 
 namespace
 {
-    std::string CollectWord(const std::string& line, int& pos);
-    std::string CollectQuoted(const std::string& line, int& pos);
-
-    void SkipWS(const std::string& line, int& pos)
+    struct ParseContext
     {
-        const char *p = line.c_str();
-        while (p[pos] != '\0' && (p[pos] == ' ' || p[pos] == '\t'))
+        std::string line;
+        int pos;
+        int lineno;
+
+        bool IsQuoted() {return line[pos] == '\"';}
+        bool IsDigit()
         {
-            ++pos;
+            if (line[0] >= '0' && line[0] <= '9')
+                return true;
+            return false;
+        }
+
+        bool IsChar()
+        {
+            if (line[pos] == '\0' || line[pos] == ' ' || line[pos] == '\t')
+                return false;
+            return true;
+        }
+
+        bool IsWS()
+        {
+            return !IsChar();
+        }
+
+        char GetChar() {return line[pos];}
+    };
+
+    std::string CollectWord(ParseContext&);
+    std::string CollectQuoted(ParseContext&);
+
+    void SkipWS(ParseContext& ctx)
+    {
+        while (ctx.IsWS())
+        {
+            ++ctx.pos;
         }
     }
 
-    vm::Data *CollectData(const std::string& line, int& pos)
+    int CollectInteger(ParseContext& ctx)
     {
-        SkipWS(line, pos);
-        if (line[pos] == '\"')
+        SkipWS(ctx);
+        std::string s = CollectWord(ctx);
+        return strtol(s.c_str(), nullptr, 10);
+    }
+
+    vm::Data *CollectData(ParseContext& ctx)
+    {
+        SkipWS(ctx);
+        if (ctx.IsQuoted())
         {
-            std::string s = CollectQuoted(line, pos);
+            std::string s = CollectQuoted(ctx);
             return new vm::String(s);
         }
-        std::string value = CollectWord(line, pos);
-        if (value[0] >= '0' && value[0] <= '9')
+        if (ctx.IsDigit())
         {
-            int n = strtol(value.c_str(), nullptr, 10);
+            int n = CollectInteger(ctx);
             return new vm::Int(n);
         }
-        return new vm::Variable(value);
+        std::string s = CollectWord(ctx);
+        return new vm::Variable(s);
     }
 
-    std::string CollectLabel(const std::string& line, int& pos)
+
+    std::string CollectLabel(ParseContext& ctx)
     {
-        SkipWS(line, pos);
-        return CollectWord(line, pos);
+        SkipWS(ctx);
+        return CollectWord(ctx);
     }
 
-    std::string CollectWord(const std::string& line, int& pos)
+    std::string CollectWord(ParseContext& ctx)
     {
         std::stringstream strm;
-        SkipWS(line, pos);
-        const char *p = line.c_str();
-        while (p[pos] != '\0' && p[pos] != ' ' && p[pos] != '\t')
+        SkipWS(ctx);
+        while (ctx.IsChar())
         {
-            strm << p[pos];
-            ++pos;
+            strm << ctx.GetChar();
+            ++ctx.pos;
         }
         return strm.str();
     }
 
-    std::string CollectQuoted(const std::string& line, int& pos)
+    std::string CollectQuoted(ParseContext& ctx)
     {
         std::stringstream strm;
-        const char *p = line.c_str();
-        ++pos;  // consume the "
-        while (p[pos] != '\0' && p[pos] != '"')
+        ++ctx.pos;  // consume the "
+        while (ctx.GetChar() != '\0' && ctx.GetChar() != '"')
         {
-            strm << p[pos];
-            ++pos;
+            strm << ctx.GetChar();
+            ++ctx.pos;
         }
-        ++pos; // consume the "
+        ++ctx.pos; // consume the "
         return strm.str();
     }
 
-    vm::Push *ParsePush(const std::string& line, int& pos)
+    vm::Push *ParsePush(ParseContext& ctx)
     {
-        SkipWS(line, pos);
-        vm::Data *p = CollectData(line, pos);
+        SkipWS(ctx);
+        vm::Data *p = CollectData(ctx);
         return new vm::Push(p);
     }
 
-    vm::Pop *ParsePop(const std::string& line, int& pos)
+    vm::Pop *ParsePop(ParseContext& ctx)
     {
         return new vm::Pop();
     }
 
-    vm::Test *ParseTest(const std::string& line, int& pos)
+    vm::Test *ParseTest(ParseContext& ctx)
     {
         return new vm::Test();
     }
 
-    vm::TestIm *ParseTestIm(const std::string& line, int& pos)
+    vm::TestIm *ParseTestIm(ParseContext& ctx)
     {
-        SkipWS(line, pos);
-        vm::Data *p = CollectData(line, pos);
+        SkipWS(ctx);
+        vm::Data *p = CollectData(ctx);
         return new vm::TestIm(p);
     }
 
-    vm::JumpEQ *ParseJumpEQ(const std::string& line, int& pos, std::string& targetName)
+    vm::JumpEQ *ParseJumpEQ(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::JumpEQ();
     }
 
-    vm::JumpNEQ *ParseJumpNEQ(const std::string& line, int& pos, std::string& targetName)
+    vm::JumpNEQ *ParseJumpNEQ(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::JumpNEQ();
     }
 
-    vm::JumpGTEQ *ParseJumpGTEQ(const std::string& line, int& pos, std::string& targetName)
+    vm::JumpGTEQ *ParseJumpGTEQ(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::JumpGTEQ();
     }
 
-    vm::JumpGT *ParseJumpGT(const std::string& line, int& pos, std::string& targetName)
+    vm::JumpGT *ParseJumpGT(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::JumpGT();
     }
 
-    vm::JumpLTEQ *ParseJumpLTEQ(const std::string& line, int& pos, std::string& targetName)
+    vm::JumpLTEQ *ParseJumpLTEQ(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::JumpLTEQ();
     }
 
-    vm::JumpLT *ParseJumpLT(const std::string& line, int& pos, std::string& targetName)
+    vm::JumpLT *ParseJumpLT(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::JumpLT();
     }
 
-    vm::Jump *ParseJump(const std::string& line, int& pos, std::string& targetName)
+    vm::Jump *ParseJump(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::Jump();
     }
 
-    vm::ContEQ *ParseContEQ(const std::string& line, int& pos, std::string& targetName)
+    vm::ContEQ *ParseContEQ(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::ContEQ();
     }
 
-    vm::ContNEQ *ParseContNEQ(const std::string& line, int& pos, std::string& targetName)
+    vm::ContNEQ *ParseContNEQ(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::ContNEQ();
     }
 
-    vm::ContGTEQ *ParseContGTEQ(const std::string& line, int& pos, std::string& targetName)
+    vm::ContGTEQ *ParseContGTEQ(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::ContGTEQ();
     }
 
-    vm::ContGT *ParseContGT(const std::string& line, int& pos, std::string& targetName)
+    vm::ContGT *ParseContGT(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::ContGT();
     }
 
-    vm::ContLTEQ *ParseContLTEQ(const std::string& line, int& pos, std::string& targetName)
+    vm::ContLTEQ *ParseContLTEQ(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::ContLTEQ();
     }
 
-    vm::ContLT *ParseContLT(const std::string& line, int& pos, std::string& targetName)
+    vm::ContLT *ParseContLT(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
         return new vm::ContLT();
     }
 
-    vm::Call *ParseCall(const std::string& line, int& pos, std::string& targetName)
+    vm::Call *ParseCall(ParseContext& ctx, std::string& targetName)
     {
-        SkipWS(line, pos);
-        targetName = CollectLabel(line, pos);
+        SkipWS(ctx);
+        int n = CollectInteger(ctx);
+        targetName = CollectLabel(ctx);
         vm::Call *pCall = new vm::Call();
         pCall->funcname = targetName;
+        pCall->nargs = n;
         return pCall;
     }
 
-    vm::StoreBP *ParseStoreBP(const std::string& line, int& pos)
-    {
-        return new vm::StoreBP();
-    }
-
-    vm::Halt *ParseHalt(const std::string& line, int& pos)
+    vm::Halt *ParseHalt(ParseContext& ctx)
     {
         return new vm::Halt();
     }
 
-    vm::Break *ParseBreak(const std::string& line, int& pos)
+    vm::Break *ParseBreak(ParseContext& ctx)
     {
         return new vm::Break();
     }
 
-    vm::Return *ParseReturn(const std::string& line, int& pos)
+    vm::Return *ParseReturn(ParseContext& ctx)
     {
         return new vm::Return();
     }
 
-    vm::Inc *ParseInc(const std::string& line, int& pos)
+    vm::Inc *ParseInc(ParseContext& ctx)
     {
         return new vm::Inc();
     }
 
-    vm::Add *ParseAdd(const std::string& line, int& pos)
+    vm::Add *ParseAdd(ParseContext& ctx)
     {
         return new vm::Add();
     }
 
-    vm::Subtract *ParseSubtract(const std::string& line, int& pos)
+    vm::Subtract *ParseSubtract(ParseContext& ctx)
     {
         return new vm::Subtract();
     }
 
-    vm::Multiply *ParseMultiply(const std::string& line, int& pos)
+    vm::Multiply *ParseMultiply(ParseContext& ctx)
     {
         return new vm::Multiply();
     }
 
-    vm::IntDivide *ParseIntDivide(const std::string& line, int& pos)
+    vm::IntDivide *ParseIntDivide(ParseContext& ctx)
     {
         return new vm::IntDivide();
     }
 
-    vm::Dec *ParseDec(const std::string& line, int& pos)
+    vm::Dec *ParseDec(ParseContext& ctx)
     {
         return new vm::Dec();
     }
 
-    vm::LoadVariable *ParseLoadVariable(const std::string& line, int& pos)
+    vm::LoadVariable *ParseLoadVariable(ParseContext& ctx)
     {
-        SkipWS(line, pos);
-        std::string s = CollectWord(line, pos);
+        SkipWS(ctx);
+        std::string s = CollectWord(ctx);
         return new vm::LoadVariable(s);
     }
 
-    vm::StoreVariable *ParseStoreVariable(const std::string& line, int& pos)
+    vm::StoreVariable *ParseStoreVariable(ParseContext& ctx)
     {
-        SkipWS(line, pos);
-        std::string s = CollectWord(line, pos);
+        SkipWS(ctx);
+        std::string s = CollectWord(ctx);
         return new vm::StoreVariable(s);
     }
 
-    vm::Dup *ParseDup(const std::string& line, int& pos)
+    vm::Dup *ParseDup(ParseContext& ctx)
     {
         return new vm::Dup();
     }
 
-    vm::Swap *ParseSwap(const std::string& line, int& pos)
+    vm::Swap *ParseSwap(ParseContext& ctx)
     {
         return new vm::Swap();
     }
@@ -324,21 +355,25 @@ namespace vm
     {
         pMachine = &machine;
 
+        ParseContext ctx;
+
         while (strm.eof() == false)
 		{
             std::string line;
             std::getline(strm, line);
+            ++ctx.lineno;
             if (strm.eof())
             {
                 return;
             }
 
-            int pos = 0;
-            SkipWS(line, pos);
-            if (line[pos] == ';' || line[pos] == '\0')
+            ctx.line = line;
+            ctx.pos = 0;
+            SkipWS(ctx);
+            if (ctx.GetChar() == ';' || ctx.GetChar() == '\0')
                 continue;
             //std::cout << line << std::endl;
-            std::string s = CollectWord(line, pos);
+            std::string s = CollectWord(ctx);
             if (s[0] == ':') // label
             {
                 std::string label = s.substr(1);
@@ -346,17 +381,17 @@ namespace vm
             }
             else if (s == "var")
             {
-                std::string name = CollectWord(line, pos);
-                SkipWS(line, pos);
+                std::string name = CollectWord(ctx);
+                SkipWS(ctx);
                 Data *pData = nullptr;
-                if (line[pos] == '\"')
+                if (ctx.IsQuoted())
                 {
-                    std::string s = CollectQuoted(line, pos);
+                    std::string s = CollectQuoted(ctx);
                     pData = new String(s);
                 }
                 else
                 {
-                    std::string s = CollectWord(line, pos);
+                    std::string s = CollectWord(ctx);
                     int n = strtol(s.c_str(), nullptr, 10);
                     pData = new Int(n);
                 }
@@ -364,141 +399,137 @@ namespace vm
             }
 
             else if (s == "test")
-                machine.code.AddInstruction( ParseTest(line, pos));
+                machine.code.AddInstruction( ParseTest(ctx));
             else if (s == "testim")
-                machine.code.AddInstruction( ParseTestIm(line, pos));
+                machine.code.AddInstruction( ParseTestIm(ctx));
             else if (s == "jumpe")
             {
                 std::string targetName;
-                Instruction *pInst = ParseJumpEQ(line, pos, targetName);
+                Instruction *pInst = ParseJumpEQ(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "jumpne")
             {
                 std::string targetName;
-                Instruction *pInst = ParseJumpNEQ(line, pos, targetName);
+                Instruction *pInst = ParseJumpNEQ(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "jumpgte")
             {
                 std::string targetName;
-                Instruction *pInst = ParseJumpGTEQ(line, pos, targetName);
+                Instruction *pInst = ParseJumpGTEQ(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "jumpgt")
             {
                 std::string targetName;
-                Instruction *pInst = ParseJumpGT(line, pos, targetName);
+                Instruction *pInst = ParseJumpGT(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "jumplte")
             {
                 std::string targetName;
-                Instruction *pInst = ParseJumpLTEQ(line, pos, targetName);
+                Instruction *pInst = ParseJumpLTEQ(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "jumplt")
             {
                 std::string targetName;
-                Instruction *pInst = ParseJumpLT(line, pos, targetName);
+                Instruction *pInst = ParseJumpLT(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "jump")
             {
                 std::string targetName;
-                Instruction *pInst = ParseJump(line, pos, targetName);
+                Instruction *pInst = ParseJump(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "conte")
             {
                 std::string targetName;
-                Instruction *pInst = ParseContEQ(line, pos, targetName);
+                Instruction *pInst = ParseContEQ(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "contne")
             {
                 std::string targetName;
-                Instruction *pInst = ParseContNEQ(line, pos, targetName);
+                Instruction *pInst = ParseContNEQ(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "contgte")
             {
                 std::string targetName;
-                Instruction *pInst = ParseContGTEQ(line, pos, targetName);
+                Instruction *pInst = ParseContGTEQ(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "contgt")
             {
                 std::string targetName;
-                Instruction *pInst = ParseContGT(line, pos, targetName);
+                Instruction *pInst = ParseContGT(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "contlte")
             {
                 std::string targetName;
-                Instruction *pInst = ParseContLTEQ(line, pos, targetName);
+                Instruction *pInst = ParseContLTEQ(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "contlt")
             {
                 std::string targetName;
-                Instruction *pInst = ParseContLT(line, pos, targetName);
+                Instruction *pInst = ParseContLT(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
             else if (s == "call")
             {
                 std::string targetName;
-                Instruction *pInst = ParseCall(line, pos, targetName);
+                Instruction *pInst = ParseCall(ctx, targetName);
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
-            else if (s == "storebp")
-            {
-                Instruction *pInst = ParseStoreBP(line, pos);
-            }
             else if (s == "halt")
-                machine.code.AddInstruction( ParseHalt(line, pos));
+                machine.code.AddInstruction( ParseHalt(ctx));
             else if (s == "break")
-                machine.code.AddInstruction( ParseBreak(line, pos));
+                machine.code.AddInstruction( ParseBreak(ctx));
             else if (s == "return")
-                machine.code.AddInstruction( ParseReturn(line, pos));
+                machine.code.AddInstruction( ParseReturn(ctx));
             else if (s == "inc")
-                machine.code.AddInstruction( ParseInc(line, pos));
+                machine.code.AddInstruction( ParseInc(ctx));
             else if (s == "dec")
-                machine.code.AddInstruction( ParseDec(line, pos));
+                machine.code.AddInstruction( ParseDec(ctx));
             else if (s == "add")
-                machine.code.AddInstruction( ParseAdd(line, pos));
+                machine.code.AddInstruction( ParseAdd(ctx));
             else if (s == "sub")
-                machine.code.AddInstruction( ParseSubtract(line, pos));
+                machine.code.AddInstruction( ParseSubtract(ctx));
             else if (s == "mult")
-                machine.code.AddInstruction( ParseMultiply(line, pos));
+                machine.code.AddInstruction( ParseMultiply(ctx));
             else if (s == "idiv")
-                machine.code.AddInstruction( ParseIntDivide(line, pos));
+                machine.code.AddInstruction( ParseIntDivide(ctx));
             else if (s == "load")
-                machine.code.AddInstruction( ParseLoadVariable(line, pos));
+                machine.code.AddInstruction( ParseLoadVariable(ctx));
             else if (s == "store")
-                machine.code.AddInstruction( ParseStoreVariable(line, pos));
+                machine.code.AddInstruction( ParseStoreVariable(ctx));
             else if (s == "push")
-                machine.code.AddInstruction( ParsePush(line, pos));
+                machine.code.AddInstruction( ParsePush(ctx));
             else if (s == "pop")
-                machine.code.AddInstruction( ParsePop(line, pos));
+                machine.code.AddInstruction( ParsePop(ctx));
             else if (s == "dup")
-                machine.code.AddInstruction( ParseDup(line, pos));
+                machine.code.AddInstruction( ParseDup(ctx));
             else if (s == "swap")
-                machine.code.AddInstruction( ParseSwap(line, pos));
+                machine.code.AddInstruction( ParseSwap(ctx));
 			else
 			{
                 std::stringstream strm;

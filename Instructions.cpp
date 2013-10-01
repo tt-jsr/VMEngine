@@ -28,7 +28,7 @@ namespace
             machine.GetVariable(pVar->name, p);
             return p;
         }
-        
+        return pData;
     }
 }
 
@@ -559,11 +559,14 @@ namespace vm
     /*****************************************************/
     Call::Call()
     :ip(0)
+     , nargs(0)
     {}
 
     void Call::Execute (Machine& machine)
     {
         machine.PushLocalScope();
+        machine.callstack.push(machine.registers.NArgs());
+        machine.registers.NArgs(nargs);
         if (ip <= 0)
         {
             Function *pFunc = machine.LookupFunction(funcname);
@@ -588,16 +591,6 @@ namespace vm
     }
 
     /*****************************************************/
-    void StoreBP::Execute (Machine& machine)
-    {
-        machine.registers.BP(machine.stack.Tos());
-    }
-
-    void StoreBP::Dump(std::ostream& strm)
-    {
-        strm << "storebp" << std::endl;
-    }
-    /*****************************************************/
     Return::Return()
     {}
 
@@ -610,7 +603,10 @@ namespace vm
         int n = machine.callstack.top();
         machine.callstack.pop();
         machine.registers.IP(n);
+        n = machine.callstack.top();
+        machine.registers.NArgs(n);
         machine.PopLocalScope();
+
     }
 
     void Return::Dump(std::ostream& strm)

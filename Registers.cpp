@@ -9,6 +9,8 @@ namespace vm
       ,gt(false)
       ,lt(false)
       ,halt(false)
+      , nargs(0)
+      ,totalInstructions(0)
     {
     }
 
@@ -23,8 +25,8 @@ namespace vm
         strm << "eq: " << eq << std::endl;
         strm << "lt: " << lt << std::endl;
         strm << "gt: " << gt << std::endl;
-        strm << "bp: " << bp << std::endl;
         strm << "halt: " << halt << std::endl;
+        strm << "nargs: " << nargs << std::endl;
     }
 
     void Registers::Restart()
@@ -32,7 +34,7 @@ namespace vm
         ClearFlags();
         halt = false;
         ip = 0;
-        bp = 0;
+        nargs = 0;
     }
 
     void Registers::ClearFlags()

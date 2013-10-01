@@ -30,18 +30,21 @@ namespace vm
         void SetHalt();
         bool IsHalted();
 
-        void IncIP() {++ip;}
+        void IncIP() {++ip; ++totalInstructions;}
         void IP(int n) {ip = n;}
         int IP() const {return ip;}
 
-        void BP(int n) {bp = n;}
-        int BP() const {return bp;}
+        int NArgs() {return nargs;}
+        void NArgs(int n) {nargs = n;}
+
+		int TotalInstructions() {return totalInstructions;}
     private:
         int ip;
         bool lt;
         bool gt;
         bool eq;
-        bool bp;
+        int nargs;
         bool halt;
+        int totalInstructions;
     };
 }

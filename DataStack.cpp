@@ -33,7 +33,7 @@ namespace vm
         stack.clear();
 	}
 
-    void DataStack::Tos()
+    int DataStack::Tos()
     {
         return tos;
     }
