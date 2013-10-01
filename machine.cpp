@@ -55,11 +55,11 @@ namespace vm
         }
     }
 
-    void Machine::Clock()
+    Machine::Clock()
     {
         if (registers.IsHalted())
         {
-            return;
+            return false;
         }
         if (registers.IP() >= code.Size())
         {
@@ -69,6 +69,54 @@ namespace vm
         Instruction *inst = code.Get(registers.IP());
         registers.IncIP();
         inst->Execute(*this);
+    }
+
+    void Machine::Call(const std::string& fname, std::vector<Data *>& args, std::vector<Data *> ret)
+    {
+        auto it = scripfuncs.find(name);
+        if (it == scriptfuncs.end())
+        {
+            std::stringstream strm;
+            strm << "Function " << fname << " not found";
+            throw std::exception(strm.str().c_str());
+        }
+        // Save the current IP
+        int ipSave = registers.IP();
+        // set the current ip to -1
+        machine.registers.IP(-1);
+
+        // Save the stack position
+        int tosSave = stack.Tos();
+
+        // Push our function args on the stack
+        for (int i = 0; i < args.size(); i++)
+        {
+            stack.Push(args[i]);
+        }
+
+        // We use the call instruction to set everything up
+        Call call;
+        call.ip = it.second;
+        call.nargs = args.size();
+        call.Execute();
+
+        // The return statement will set the ip back to -1
+        // causing the loop to terminate. Run the clock while 
+        // the IP is valid
+        while (registers.IP() >= 0)
+        {
+            Clock();
+        }
+
+        // Reset the ip
+        registers.IP(ipSave);
+
+        // Pickup the return values
+        while (stack.Tos() > tosSave)
+        {
+            Data *p = stack.Pop();
+            ret.push_back(p);
+        }
     }
 
     bool Machine::RegisterFunction(const std::string& name, Function *pFunc)

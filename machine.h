@@ -24,6 +24,8 @@ namespace vm
         Code code;
         std::stack<int> callstack;
 
+        void Call(const std::string& fname, std::vector<Data *>& args, std::vector<Data *> ret);
+
         bool RegisterFunction(const std::string& name, Function *);
         Function *LookupFunction(const std::string& name);
 
@@ -48,8 +50,10 @@ namespace vm
         typedef std::map<std::string, Data *> variablemap_t;
         typedef std::map<std::string, Function *> functionmap_t;
         typedef std::vector<variablemap_t> variablescope_t;
+        typedef std::map<std::string, int> scriptfuncs_t;
         variablemap_t global_variables;
         variablescope_t local_variables;
+        scriptfuncs_t scriptsfuncs;
         functionmap_t functions;
     };
 }
