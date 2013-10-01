@@ -7,13 +7,32 @@
 
 namespace
 {
+    class ParseContext;
+    void Throw(ParseContext& ctx, const char *msg);
+
     struct ParseContext
     {
         std::string line;
         int pos;
         int lineno;
 
-        bool IsQuoted() {return line[pos] == '\"';}
+        ParseContext()
+			:pos(0)
+            ,lineno(0)
+		{}
+
+        char Nextc()
+        {
+            if (line[pos] == '\0')
+                return line[pos];
+            ++pos;
+            return line[pos];
+        }
+
+        bool IsQuoted() {
+			return line[pos] == '\"';
+        }
+
         bool IsDigit()
         {
             if (line[0] >= '0' && line[0] <= '9')
@@ -30,11 +49,20 @@ namespace
 
         bool IsWS()
         {
-            return !IsChar();
+            if (line[pos] == ' ' || line[pos] == '\t')
+                return true;
+            return false;
         }
 
-        char GetChar() {return line[pos];}
+        char Getc() {return line[pos];}
     };
+
+    void Throw(ParseContext& ctx, const char *msg)
+    {
+        std::stringstream strm;
+        strm << msg << " at line " << ctx.lineno;
+        throw std::exception(strm.str().c_str());
+    }
 
     std::string CollectWord(ParseContext&);
     std::string CollectQuoted(ParseContext&);
@@ -43,7 +71,7 @@ namespace
     {
         while (ctx.IsWS())
         {
-            ++ctx.pos;
+            ctx.Nextc();
         }
     }
 
@@ -84,8 +112,8 @@ namespace
         SkipWS(ctx);
         while (ctx.IsChar())
         {
-            strm << ctx.GetChar();
-            ++ctx.pos;
+            strm << ctx.Getc();
+            ctx.Nextc();
         }
         return strm.str();
     }
@@ -93,13 +121,13 @@ namespace
     std::string CollectQuoted(ParseContext& ctx)
     {
         std::stringstream strm;
-        ++ctx.pos;  // consume the "
-        while (ctx.GetChar() != '\0' && ctx.GetChar() != '"')
+        ctx.Nextc();  // consume the "
+        while (ctx.Getc() != '\0' && ctx.Getc() != '"')
         {
-            strm << ctx.GetChar();
-            ++ctx.pos;
+            strm << ctx.Getc();
+            ctx.Nextc();
         }
-        ++ctx.pos; // consume the "
+        ctx.Nextc(); // consume the "
         return strm.str();
     }
 
@@ -131,6 +159,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::JumpEQ();
     }
 
@@ -138,6 +170,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::JumpNEQ();
     }
 
@@ -145,6 +181,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::JumpGTEQ();
     }
 
@@ -152,6 +192,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::JumpGT();
     }
 
@@ -159,6 +203,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::JumpLTEQ();
     }
 
@@ -166,6 +214,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::JumpLT();
     }
 
@@ -173,6 +225,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::Jump();
     }
 
@@ -180,6 +236,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::ContEQ();
     }
 
@@ -187,6 +247,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::ContNEQ();
     }
 
@@ -194,6 +258,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::ContGTEQ();
     }
 
@@ -201,6 +269,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::ContGT();
     }
 
@@ -208,6 +280,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::ContLTEQ();
     }
 
@@ -215,6 +291,10 @@ namespace
     {
         SkipWS(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         return new vm::ContLT();
     }
 
@@ -223,6 +303,10 @@ namespace
         SkipWS(ctx);
         int n = CollectInteger(ctx);
         targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
         vm::Call *pCall = new vm::Call();
         pCall->funcname = targetName;
         pCall->nargs = n;
@@ -367,10 +451,14 @@ namespace vm
                 return;
             }
 
+            if (line.size() == 0)
+            {
+                continue;
+            }
             ctx.line = line;
             ctx.pos = 0;
             SkipWS(ctx);
-            if (ctx.GetChar() == ';' || ctx.GetChar() == '\0')
+            if (ctx.Getc() == ';' || ctx.Getc() == '\0')
                 continue;
             //std::cout << line << std::endl;
             std::string s = CollectWord(ctx);
