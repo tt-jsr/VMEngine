@@ -55,11 +55,11 @@ namespace vm
         }
     }
 
-    Machine::Clock()
+    void Machine::Clock()
     {
         if (registers.IsHalted())
         {
-            return false;
+            return;
         }
         if (registers.IP() >= code.Size())
         {
@@ -73,7 +73,7 @@ namespace vm
 
     void Machine::Call(const std::string& fname, std::vector<Data *>& args, std::vector<Data *> ret)
     {
-        auto it = scripfuncs.find(name);
+        auto it = scriptfuncs.find(fname);
         if (it == scriptfuncs.end())
         {
             std::stringstream strm;
@@ -83,7 +83,7 @@ namespace vm
         // Save the current IP
         int ipSave = registers.IP();
         // set the current ip to -1
-        machine.registers.IP(-1);
+        registers.IP(-1);
 
         // Save the stack position
         int tosSave = stack.Tos();
@@ -95,10 +95,10 @@ namespace vm
         }
 
         // We use the call instruction to set everything up
-        Call call;
-        call.ip = it.second;
+        vm::Call call;
+        call.ip = it->second;
         call.nargs = args.size();
-        call.Execute();
+        call.Execute(*this);
 
         // The return statement will set the ip back to -1
         // causing the loop to terminate. Run the clock while 

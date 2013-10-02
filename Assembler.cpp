@@ -547,6 +547,17 @@ namespace vm
                 std::string label = s.substr(1);
                 AddLabel(label);
             }
+            else if (s == "function")
+            {
+                std::string name = CollectWord(ctx);
+                if (name.empty())
+                {
+                    Throw(ctx, "No function name");
+                }
+                machine.scriptfuncs.insert(Machine::scriptfuncs_t::value_type(name, machine.code.Size()));
+                // This means that function names and labels share the same namespace
+                AddLabel(name);
+            }
             else if (s == "var")
             {
                 std::string name = CollectWord(ctx);

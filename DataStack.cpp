@@ -20,7 +20,7 @@ namespace vm
             strm << "Empty" << std::endl;
             return;
 		}
-        for (size_t idx = stack.size()-1; idx >= 0; --idx)
+        for (int idx = (int)stack.size()-1; idx >= 0; --idx)
         {
             stack[idx]->Dump(strm);
 			strm << std::endl;

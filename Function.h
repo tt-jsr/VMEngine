@@ -10,6 +10,7 @@ namespace vm
         enum ArgType {INVALID, INT, STRING};
         virtual void OnExecute() = 0;
 
+        void AddReturn(Data *p) {ret.push_back(p);}
         int numargs() const {return (int)args.size();}
         ArgType GetType(int idx) const 
         {
@@ -34,6 +35,7 @@ namespace vm
         }
     public:
         std::vector<Data *> args;
+        std::vector<Data *> ret;
         Machine *pMachine;
 	};
 }

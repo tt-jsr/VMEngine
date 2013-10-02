@@ -589,6 +589,7 @@ namespace vm
             {
                 Throw(this, "Stack underflow");
             }
+            pFunc->args.clear();
             for (int i = 0; i < nargs; ++i)
             {
                 Data *p = machine.stack.Pop();
@@ -597,6 +598,18 @@ namespace vm
             pFunc->pMachine = &machine;
             pFunc->OnExecute();
             // Cleanup here, user functions don't have a Return statement
+            for (int i = 0; i < (int)pFunc->args.size(); i++)
+			{
+                delete pFunc->args[i];
+			}
+            pFunc->args.clear();
+
+            // Now push any return values onto the stack
+            for (int i = 0; i < (int)pFunc->ret.size(); i++)
+            {
+                machine.stack.Push(pFunc->ret[i]);
+            }
+            pFunc->ret.clear();
             machine.callstack.pop();
             int n = machine.callstack.top();
             machine.registers.NArgs(n);
