@@ -42,33 +42,33 @@ namespace vm
         return (int)stack.size();
     }
 
-    void DataStack::Push(Data *d)
+    void DataStack::Push(Data d)
     {
         stack.push_back(d);
     }
 
     void DataStack::Push(const std::string& s)
     {
-        stack.push_back(new String(s));
+        stack.push_back(DataObj::Create(s));
     }
 
     void DataStack::Push(int n)
     {
-        stack.push_back(new Int(n));
+        stack.push_back(DataObj::Create(n));
     }
 
-    Data *DataStack::Pop()
+    Data DataStack::Pop()
     {
         if (stack.size() == 0)
         {
             return nullptr;
         }
-        Data *p = stack[stack.size()-1];
+        Data p = stack[stack.size()-1];
         stack.pop_back();
         return p;
     }
 
-    Data *DataStack::Peek(int n)
+    Data DataStack::Peek(int n)
     {
         if (n < 0)
         {

@@ -1,9 +1,8 @@
 #pragma once
+#include "data.h"
 
 namespace vm
 {
-    class Data;
-
     class DataStack
     {
     public:
@@ -12,16 +11,17 @@ namespace vm
 
         void Dump(std::ostream&);
 
-        Data *Peek(int n);
-        void Push(Data *);
+        Data Peek(int n);
+        void Push(Data );
         void Push(int n);
         void Push(const std::string&);
-        Data *Pop();
+        Data Pop();
         void Clear();
         int Tos();
         int Size();
+
     private:
-        std::vector<Data *> stack;
+        std::vector<Data> stack;
     };
 }
 

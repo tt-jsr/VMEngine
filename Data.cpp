@@ -3,18 +3,38 @@
 
 namespace vm
 {
-    Data::Data(Type t)
+    DataObj::DataObj(Type t)
         :type(t)
     {}
 
+    Data DataObj::Create(int n)
+    {
+        return Data(new Int(n));
+    }
+
+    Data DataObj::Create(const std::string& s)
+    {
+        return Data(new String(s));
+    }
+
+    Data DataObj::CreateVariable(const std::string& s)
+    {
+        return Data(new Variable(s));
+    }
+    /**********************************************************/
+
+    String::String()
+    :DataObj(DataObj::STRING)
+    {}
+
     String::String(std::string s)
-    :Data(Data::STRING)
+    :DataObj(DataObj::STRING)
      , str(s)
     {}
 
-    Data *String::Clone()
+    Data String::Clone()
     {
-        return new String(str);
+        return Data(new String(str));
     }
 
     void String::Dump(std::ostream& strm)
@@ -24,15 +44,20 @@ namespace vm
 
     /**********************************************************/
 
+    Int::Int()
+    :DataObj(DataObj::INT)
+     , n(0)
+    {}
+
     Int::Int(int n_)
-    :Data(Data::INT)
+    :DataObj(DataObj::INT)
      , n(n_)
     {}
 
 
-    Data *Int::Clone()
+    Data Int::Clone()
     {
-        return new Int(n);
+        return Data(new Int(n));
     }
 
     void Int::Dump(std::ostream& strm)
@@ -40,31 +65,21 @@ namespace vm
         strm << "int: " << n;
     }
 
-    Data *Data::Create(int n)
-    {
-        return new Int(n);
-    }
-
-    Data *Data::Create(const std::string& s)
-    {
-        return new String(s);
-    }
-
-    Data *Data::CreateVariable(const std::string& s)
-    {
-        return new Variable(s);
-    }
 
     /**********************************************************/
+    Variable::Variable()
+    :DataObj(DataObj::VARIABLE)
+    {}
+
     Variable::Variable(const std::string& s)
-    :Data(Data::VARIABLE)
+    :DataObj(DataObj::VARIABLE)
      , name(s)
     {}
 
 
-    Data *Variable::Clone()
+    Data Variable::Clone()
     {
-        return new Variable(name);
+        return Data(new Variable(name));
     }
 
     void Variable::Dump(std::ostream& strm)

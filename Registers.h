@@ -2,8 +2,6 @@
 
 namespace vm
 {
-    class Data;
-
     class Registers
     {
     public:

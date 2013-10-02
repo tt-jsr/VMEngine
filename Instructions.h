@@ -1,9 +1,9 @@
 #pragma once
+#include "Data.h"
 
 namespace vm
 {
     class Machine;
-    class Data;
 
     class Instruction
     {
@@ -31,12 +31,12 @@ namespace vm
 	public:
         TestIm(int n);
         TestIm(const std::string&);
-        TestIm(Data *p);
+        TestIm(Data p);
         ~TestIm();
       
         void Execute(Machine& machine);
         void Dump(std::ostream&);
-        Data *pData;
+        Data pData;
     };
 
     /*********************************************/
@@ -275,12 +275,12 @@ namespace vm
 	public:
         Push(int n);
         Push(const std::string&);
-        Push(Data *p);
+        Push(Data p);
         ~Push();
 
         void Execute(Machine& machine);
         void Dump(std::ostream&);
-        Data *pData;
+        Data pData;
     };
 
     class Pop : public Instruction

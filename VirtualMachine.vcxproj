@@ -71,6 +71,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Allocator.h" />
     <ClInclude Include="Assembler.h" />
     <ClInclude Include="Code.h" />
     <ClInclude Include="Data.h" />

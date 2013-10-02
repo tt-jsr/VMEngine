@@ -7,24 +7,24 @@
 
 namespace
 {
-    const vm::Data *ResolveVariable(vm::Machine& machine, vm::Data *pData)
+    const vm::Data ResolveVariable(vm::Machine& machine, vm::Data pData)
     {
-        if (pData == nullptr)
+        if (pData.get() == nullptr)
         {
             return pData;
         }
-        if (pData->type == vm::Data::INT)
+        if (pData->type == vm::DataObj::INT)
         {
             return pData;
         }
-        if (pData->type == vm::Data::STRING)
+        if (pData->type == vm::DataObj::STRING)
         {
             return pData;
         }
-        if (pData->type == vm::Data::VARIABLE)
+        if (pData->type == vm::DataObj::VARIABLE)
         {
-            vm::Variable *pVar = (vm::Variable *)pData;
-            vm::Data *p = nullptr;
+            vm::Variable *pVar = pData->GetVariable();
+            vm::Data p;
             machine.GetVariable(pVar->name, p);
             return p;
         }
@@ -51,8 +51,8 @@ namespace vm
     /***********************************************/
     void Test::Execute(Machine& machine)
     {
-        const Data *d1 = ResolveVariable(machine, machine.stack.Peek(0));
-        const Data *d2 = ResolveVariable(machine, machine.stack.Peek(1));
+        const Data d1 = ResolveVariable(machine, machine.stack.Peek(0));
+        const Data d2 = ResolveVariable(machine, machine.stack.Peek(1));
         if (d1 == nullptr || d2 == nullptr)
         {
             Throw(this, "Stack underflow");
@@ -62,13 +62,13 @@ namespace vm
             Throw(this, "Cannot compare types");
         }
         int result = 0;
-        if (d1->type == Data::INT)
+        if (d1->type == DataObj::INT)
         {
-            result = ((Int *)d1)->n - ((Int *)d2)->n;
+            result = d1->GetInt()->n - d2->GetInt()->n;
         }
-        if (d1->type == Data::STRING)
+        if (d1->type == DataObj::STRING)
         {
-            result = ((String *)d1)->str.compare(((String *)d2)->str);
+            result = d1->GetString()->str.compare(d2->GetString()->str);
         }
         if (result < 0)
             machine.registers.SetLT();
@@ -86,44 +86,43 @@ namespace vm
     /*****************************************************/
     TestIm::TestIm(int n)
     {
-        pData = new Int(n);
+        pData = DataObj::Create(n);
     }
 
     TestIm::TestIm(const std::string& s)
     {
-        pData = new String(s);
+        pData = DataObj::Create(s);
     }
 
-    TestIm::TestIm(Data *p)
+    TestIm::TestIm(Data p)
     {
         pData = p;
 	}
 
     TestIm::~TestIm()
     {
-        delete pData;
     }
 
     void TestIm::Execute(Machine& machine)
     {
-        const Data *d1 = ResolveVariable(machine, machine.stack.Peek(0));
+        const Data d1 = ResolveVariable(machine, machine.stack.Peek(0));
         if (d1 == nullptr)
         {
             Throw(this, "Stack underflow");
         }
-        const Data *pConstant = ResolveVariable(machine, pData);
+        const Data pConstant = ResolveVariable(machine, pData);
         if (d1->type != pConstant->type)
         {
             Throw(this, "Cannot compare types");
         }
         int result = 0;
-        if (d1->type == Data::INT)
+        if (d1->type == DataObj::INT)
         {
-            result = ((Int *)d1)->n - ((Int *)pConstant)->n;
+            result = d1->GetInt()->n - pConstant->GetInt()->n;
         }
-        if (d1->type == Data::STRING)
+        if (d1->type == DataObj::STRING)
         {
-            result = ((String *)d1)->str.compare(((String *)pConstant)->str);
+            result = d1->GetString()->str.compare(pConstant->GetString()->str);
         }
         if (result < 0)
             machine.registers.SetLT();
@@ -143,17 +142,17 @@ namespace vm
     /*****************************************************/
     void Inc::Execute(Machine& machine)
     {
-        Data *d1 = machine.stack.Peek(0);
+        Data d1 = machine.stack.Peek(0);
         if (d1 == nullptr)
         {
             Throw(this, "Stack underflow");
         }
 
-        if (d1->type != Data::INT)
+        if (d1->type != DataObj::INT)
         {
             Throw(this, "Cannot increment non-int");
         }
-        ++((Int *)d1)->n;
+        ++d1->GetInt()->n;
     }
 
     void Inc::Dump(std::ostream& strm)
@@ -164,17 +163,17 @@ namespace vm
     /*****************************************************/
     void Dec::Execute(Machine& machine)
     {
-        Data *d1 = machine.stack.Peek(0);
+        Data d1 = machine.stack.Peek(0);
         if (d1 == nullptr)
         {
             Throw(this, "Stack underflow");
         }
 
-        if (d1->type != Data::INT)
+        if (d1->type != DataObj::INT)
         {
             Throw(this, "Cannot decrement non-int");
         }
-        --((Int *)d1)->n;
+        --d1->GetInt()->n;
     }
 
     void Dec::Dump(std::ostream& strm)
@@ -185,31 +184,25 @@ namespace vm
     /*****************************************************/
     void Add::Execute(Machine& machine)
     {
-        Data *d1 = machine.stack.Pop();
-        Data *d2 = machine.stack.Pop();
+        Data d1 = machine.stack.Pop();
+        Data d2 = machine.stack.Pop();
         if (d1 == nullptr || d2 == nullptr)
         {
-            delete d1;
-            delete d2;
             Throw(this, "Stack underflow");
         }
-        const Data *a1 = ResolveVariable(machine, d1);
-        const Data *a2 = ResolveVariable(machine, d2);
+        const Data a1 = ResolveVariable(machine, d1);
+        const Data a2 = ResolveVariable(machine, d2);
 
         if (a1->type != a2->type)
         {
-            delete d1;
-            delete d2;
             Throw(this, "Cannot add types");
         }
 
-        if (a1->type == Data::INT)
+        if (a1->type == DataObj::INT)
         {
-            int n = ((const Int *)a1)->n + ((const Int *)a2)->n;
+            int n = a1->GetInt()->n + a2->GetInt()->n;
             machine.stack.Push(n);
         }
-        delete d1;
-        delete d2;
     }
 
     void Add::Dump(std::ostream& strm)
@@ -220,29 +213,23 @@ namespace vm
     /*****************************************************/
     void Subtract::Execute(Machine& machine)
     {
-        Data *d1 = machine.stack.Pop();
-        Data *d2 = machine.stack.Pop();
+        Data d1 = machine.stack.Pop();
+        Data d2 = machine.stack.Pop();
         if (d1 == nullptr || d2 == nullptr)
         {
-            delete d1;
-            delete d2;
             Throw(this, "Stack underflow");
         }
-        const Data *a1 = ResolveVariable(machine, d1);
-        const Data *a2 = ResolveVariable(machine, d2);
+        const Data a1 = ResolveVariable(machine, d1);
+        const Data a2 = ResolveVariable(machine, d2);
         if (a1->type != a2->type)
         {
-            delete d1;
-            delete d2;
             Throw(this, "Cannot subtract types");
         }
-        if (a1->type == Data::INT)
+        if (a1->type == DataObj::INT)
         {
-            int n = ((const Int *)a1)->n - ((const Int *)a2)->n;
+            int n = a1->GetInt()->n - a2->GetInt()->n;
             machine.stack.Push(n);
         }
-        delete d1;
-        delete d2;
     }
 
     void Subtract::Dump(std::ostream& strm)
@@ -253,35 +240,27 @@ namespace vm
     /*****************************************************/
     void Multiply::Execute(Machine& machine)
     {
-        Data *d1 = machine.stack.Pop();
-        Data *d2 = machine.stack.Pop();
+        Data d1 = machine.stack.Pop();
+        Data d2 = machine.stack.Pop();
         if (d1 == nullptr || d2 == nullptr)
         {
-            delete d1;
-            delete d2;
             throw std::exception("Stack underflow");
         }
-        const Data *a1 = ResolveVariable(machine, d1);
-        const Data *a2 = ResolveVariable(machine, d2);
+        const Data a1 = ResolveVariable(machine, d1);
+        const Data a2 = ResolveVariable(machine, d2);
         if (a1->type != a2->type)
         {
-            delete d1;
-            delete d2;
             Throw(this, "Cannot add types");
         }
-        if (a1->type == Data::STRING)
+        if (a1->type == DataObj::STRING)
         {
-            delete d1;
-            delete d2;
             Throw(this, "Cannot multiply strings");
         }
-        if (a1->type == Data::INT)
+        if (a1->type == DataObj::INT)
         {
-            int n = ((const Int *)a1)->n * ((const Int *)a2)->n;
+            int n = a1->GetInt()->n * a2->GetInt()->n;
             machine.stack.Push(n);
         }
-        delete d1;
-        delete d2;
     }
 
     void Multiply::Dump(std::ostream& strm)
@@ -292,29 +271,23 @@ namespace vm
     /*****************************************************/
     void IntDivide::Execute(Machine& machine)
     {
-        Data *d1 = machine.stack.Pop();
-        Data *d2 = machine.stack.Pop();
+        Data d1 = machine.stack.Pop();
+        Data d2 = machine.stack.Pop();
         if (d1 == nullptr || d2 == nullptr)
         {
-            delete d1;
-            delete d2;
             Throw(this, "Stack underflow");
         }
-        const Data *a1 = ResolveVariable(machine, d1);
-        const Data *a2 = ResolveVariable(machine, d2);
+        const Data a1 = ResolveVariable(machine, d1);
+        const Data a2 = ResolveVariable(machine, d2);
         if (a1->type != a2->type)
         {
-            delete d1;
-            delete d2;
             Throw(this, "Cannot add types");
         }
-        if (a1->type == Data::INT)
+        if (a1->type == DataObj::INT)
         {
-            int n = ((const Int *)a1)->n / ((const Int *)a2)->n;
+            int n = a1->GetInt()->n / a2->GetInt()->n;
             machine.stack.Push(n);
         }
-        delete d1;
-        delete d2;
     }
 
     void IntDivide::Dump(std::ostream& strm)
@@ -592,16 +565,12 @@ namespace vm
             pFunc->args.clear();
             for (int i = 0; i < nargs; ++i)
             {
-                Data *p = machine.stack.Pop();
+                Data p = machine.stack.Pop();
                 pFunc->args.push_back(p);
             }
             pFunc->pMachine = &machine;
             pFunc->OnExecute();
             // Cleanup here, user functions don't have a Return statement
-            for (int i = 0; i < (int)pFunc->args.size(); i++)
-			{
-                delete pFunc->args[i];
-			}
             pFunc->args.clear();
 
             // Now push any return values onto the stack
@@ -670,7 +639,7 @@ namespace vm
 
     void LoadVariable::Execute(Machine& machine)
     {
-        Data *pData;
+        Data pData;
         bool b = machine.GetVariable(name, pData);
         if (b == false)
         {
@@ -693,7 +662,7 @@ namespace vm
 
     void StoreVariable::Execute(Machine& machine)
     {
-        Data *pData = machine.stack.Pop();
+        Data pData = machine.stack.Pop();
         if (pData == nullptr)
         {
             Throw(this, "stack underflow");
@@ -709,29 +678,28 @@ namespace vm
     /*****************************************************/
     Push::Push(int n)
     {
-        pData = new Int(n);
+        pData = DataObj::Create(n);
     }
 
     Push::Push(const std::string& s)
     {
-        pData = new String(s);
+        pData = DataObj::Create(s);
     }
 
-    Push::Push(Data *p)
+    Push::Push(Data p)
     {
         pData = p;
     }
 
     Push::~Push()
     {
-        delete pData;
     }
 
     void Push::Execute(Machine& machine)
     {
-        if (pData->type == Data::VARIABLE)
+        if (pData->type == DataObj::VARIABLE)
         {
-            const Data *p = ResolveVariable(machine, pData);
+            const Data p = ResolveVariable(machine, pData);
             if (p == nullptr)
             {
                 Throw(this, "Variable not found");
@@ -750,12 +718,11 @@ namespace vm
     /*****************************************************/
     void Pop::Execute(Machine& machine)
     {
-        Data *pData = machine.stack.Pop();
+        Data pData = machine.stack.Pop();
         if (pData == nullptr)
         {
             Throw(this, "stack underflow");
         }
-        delete pData;
     }
 
     void Pop::Dump(std::ostream& strm)
@@ -766,12 +733,12 @@ namespace vm
     /*****************************************************/
     void Dup::Execute(Machine& machine)
     {
-        Data *pData = machine.stack.Peek(0);
+        Data pData = machine.stack.Peek(0);
         if (pData == nullptr)
         {
             Throw(this, "stack underflow");
         }
-        Data *pNew = pData->Clone();
+        Data pNew = pData->Clone();
         machine.stack.Push(pNew);
     }
 
@@ -783,12 +750,12 @@ namespace vm
     /*****************************************************/
     void Swap::Execute(Machine& machine)
     {
-        Data *pData1 = machine.stack.Pop();
+        Data pData1 = machine.stack.Pop();
         if (pData1 == nullptr)
         {
             Throw(this, "stack underflow");
         }
-        Data *pData2 = machine.stack.Pop();
+        Data pData2 = machine.stack.Pop();
         if (pData2 == nullptr)
         {
             Throw(this, "stack underflow");

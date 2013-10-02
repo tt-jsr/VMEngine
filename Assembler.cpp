@@ -15,10 +15,12 @@ namespace
         std::string line;
         int pos;
         int lineno;
+        vm::Machine& machine;
 
-        ParseContext()
+        ParseContext(vm::Machine& mach)
 			:pos(0)
             ,lineno(0)
+            ,machine(mach)
 		{}
 
         char Nextc()
@@ -93,13 +95,13 @@ namespace
         return true;
     }
 
-    vm::Data *CollectData(ParseContext& ctx)
+    vm::Data CollectData(ParseContext& ctx)
     {
         SkipWS(ctx);
         if (ctx.IsQuoted())
         {
             std::string s = CollectQuoted(ctx);
-            return new vm::String(s);
+            return vm::DataObj::Create(s);
         }
         if (ctx.IsDigit())
         {
@@ -108,10 +110,10 @@ namespace
             {
                 return nullptr;
             }
-            return new vm::Int(n);
+            return vm::DataObj::Create(n);
         }
         std::string s = CollectWord(ctx);
-        return new vm::Variable(s);
+        return vm::DataObj::CreateVariable(s);
     }
 
 
@@ -149,7 +151,7 @@ namespace
     vm::Push *ParsePush(ParseContext& ctx)
     {
         SkipWS(ctx);
-        vm::Data *p = CollectData(ctx);
+        vm::Data p = CollectData(ctx);
         vm::Push *pInst = new vm::Push(p);
         pInst->lineno = ctx.lineno;
         return pInst;
@@ -172,7 +174,7 @@ namespace
     vm::TestIm *ParseTestIm(ParseContext& ctx)
     {
         SkipWS(ctx);
-        vm::Data *p = CollectData(ctx);
+        vm::Data p = CollectData(ctx);
         vm::TestIm *pInst = new vm::TestIm(p);
         pInst->lineno = ctx.lineno;
         return pInst;
@@ -519,7 +521,7 @@ namespace vm
     {
         pMachine = &machine;
 
-        ParseContext ctx;
+        ParseContext ctx(machine);
 
         while (strm.eof() == false)
 		{
@@ -562,17 +564,17 @@ namespace vm
             {
                 std::string name = CollectWord(ctx);
                 SkipWS(ctx);
-                Data *pData = nullptr;
+                Data pData = nullptr;
                 if (ctx.IsQuoted())
                 {
                     std::string s = CollectQuoted(ctx);
-                    pData = new String(s);
+                    pData = DataObj::Create(s);
                 }
                 else
                 {
                     std::string s = CollectWord(ctx);
                     int n = strtol(s.c_str(), nullptr, 10);
-                    pData = new Int(n);
+                    pData = DataObj::Create(n);
                 }
                 machine.StoreGlobalVariable(name, pData);
             }

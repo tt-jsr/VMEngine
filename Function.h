@@ -10,15 +10,15 @@ namespace vm
         enum ArgType {INVALID, INT, STRING};
         virtual void OnExecute() = 0;
 
-        void AddReturn(Data *p) {ret.push_back(p);}
+        void AddReturn(Data p) {ret.push_back(p);}
         int numargs() const {return (int)args.size();}
         ArgType GetType(int idx) const 
         {
             switch (args[idx]->type)
             {
-                case Data::INT:
+                case DataObj::INT:
                     return Function::INT;
-                case Data::STRING:
+                case DataObj::STRING:
                     return Function::STRING;
             }
             return Function::INVALID;
@@ -26,16 +26,16 @@ namespace vm
         
         int GetInt(int idx) const
         {
-            return ((Int *)args[idx])->n;
+            return args[idx]->GetInt()->n;
         }
 
         std::string GetString(int idx) const
         {
-            return ((String *)args[idx])->str;
+            return args[idx]->GetString()->str;
         }
     public:
-        std::vector<Data *> args;
-        std::vector<Data *> ret;
+        std::vector<Data > args;
+        std::vector<Data > ret;
         Machine *pMachine;
 	};
 }

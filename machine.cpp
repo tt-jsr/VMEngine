@@ -71,7 +71,7 @@ namespace vm
         inst->Execute(*this);
     }
 
-    void Machine::Call(const std::string& fname, std::vector<Data *>& args, std::vector<Data *> ret)
+    void Machine::Call(const std::string& fname, std::vector<Data>& args, std::vector<Data> ret)
     {
         auto it = scriptfuncs.find(fname);
         if (it == scriptfuncs.end())
@@ -114,7 +114,7 @@ namespace vm
         // Pickup the return values
         while (stack.Tos() > tosSave)
         {
-            Data *p = stack.Pop();
+            Data p = stack.Pop();
             ret.push_back(p);
         }
     }
@@ -135,7 +135,7 @@ namespace vm
         return it->second;
     }
 
-    bool Machine::GetVariable(const std::string& name, Data *& pData)
+    bool Machine::GetVariable(const std::string& name, Data & pData)
     {
         bool b = GetLocalVariable(name, pData);
         if (b == false)
@@ -145,7 +145,7 @@ namespace vm
         return b;
     }
 
-    bool Machine::StoreVariable(const std::string& name, Data *pData)
+    bool Machine::StoreVariable(const std::string& name, Data pData)
     {
         if (LocalVariableExists(name))
         {
@@ -158,7 +158,7 @@ namespace vm
         return StoreLocalVariable(name, pData);
     }
 
-    bool Machine::GetGlobalVariable(const std::string& name, Data *& pData)
+    bool Machine::GetGlobalVariable(const std::string& name, Data & pData)
     {
         auto it = global_variables.find(name);
         if (it == global_variables.end())
@@ -169,13 +169,8 @@ namespace vm
         return true;
     }
 
-    bool Machine::StoreGlobalVariable(const std::string& name, Data *pData)
+    bool Machine::StoreGlobalVariable(const std::string& name, Data pData)
     {
-        auto it = global_variables.find(name);
-        if (it != global_variables.end())
-        {
-            delete it->second;
-        }
         global_variables[name] = pData;
         return true;
     }
@@ -210,7 +205,7 @@ namespace vm
         return true;
     }
     
-    bool Machine::GetLocalVariable(const std::string& name, Data *& pData)
+    bool Machine::GetLocalVariable(const std::string& name, Data & pData)
     {
         auto it = local_variables.back().find(name);
         if (it == local_variables.back().end())
@@ -221,13 +216,8 @@ namespace vm
         return true;
     }
 
-    bool Machine::StoreLocalVariable(const std::string& name, Data *pData)
+    bool Machine::StoreLocalVariable(const std::string& name, Data pData)
     {
-        auto it = local_variables.back().find(name);
-        if (it != local_variables.back().end())
-        {
-            delete it->second;
-        }
         local_variables.back()[name] = pData;
         return true;
     }
