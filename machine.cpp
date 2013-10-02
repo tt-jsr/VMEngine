@@ -89,7 +89,7 @@ namespace vm
         int tosSave = stack.Tos();
 
         // Push our function args on the stack
-        for (int i = 0; i < args.size(); i++)
+        for (size_t i = 0; i < args.size(); i++)
         {
             stack.Push(args[i]);
         }
