@@ -7,6 +7,12 @@ namespace vm
         :type(t)
     {}
 
+    Data DataObj::Create(bool b)
+    {
+        int n = b ? 1 : 0;
+        return Data(new Int(n));
+    }
+
     Data DataObj::Create(int n)
     {
         return Data(new Int(n));

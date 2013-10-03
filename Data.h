@@ -19,12 +19,16 @@ namespace vm
 
         virtual Data Clone() = 0;
 		virtual void Dump(std::ostream&) = 0;
+        static Data Create(bool b);
         static Data Create(int n);
         static Data Create(const std::string&);
         static Data CreateVariable(const std::string&);
-        Int * GetInt() {return (Int *)this;}
-        String * GetString() {return (String *)this;}
-        Variable * GetVariable() {return (Variable *)this;}
+        Int * GetInt() {return type==INT ? (Int *)this : nullptr;}
+        String * GetString() {return type==STRING ? (String *)this : nullptr;}
+        Variable * GetVariable() {return type==VARIABLE ? (Variable *)this : nullptr;}
+        bool IsString() const {return type == STRING;}
+        bool IsInt() const {return type == INT;}
+        bool IsVariable() const {return type == VARIABLE;}
     };
 
     class String : public DataObj

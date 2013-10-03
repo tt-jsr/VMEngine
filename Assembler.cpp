@@ -477,6 +477,62 @@ namespace
         pInst->lineno = ctx.lineno;
         return pInst;
     }
+
+    vm::StrComp *ParseStrComp(ParseContext& ctx)
+    {
+        std::string icase = CollectWord(ctx);
+        if (icase.empty())
+        {
+            Throw(ctx, "Missing case argument");
+        }
+        bool bCase = false;
+        if (icase == "true")
+        {
+            bCase = true;
+        }
+        else if (icase == "false")
+        {
+            bCase = false;
+        }
+        else
+        {
+            Throw(ctx, "Case argument must be \"true\" or \"false\"");
+        }
+
+        vm::StrComp *pInst = new vm::StrComp();
+        pInst->bIgnoreCase = bCase;
+        pInst->lineno = ctx.lineno;
+        return pInst;
+
+    }
+
+    vm::Substr *ParseSubStr(ParseContext& ctx)
+    {
+        int start = 0;
+        int length = 0;
+
+        if (CollectInteger(ctx, start) == false)
+        {
+            Throw(ctx, "Missing integer argument");
+        }
+
+        if (CollectInteger(ctx, length) == false)
+        {
+            Throw(ctx, "Missing integer argument");
+        }
+
+        vm::Substr *pInst = new vm::Substr();
+        pInst->startPos = start;
+        pInst->length = length;
+        return pInst;
+    }
+
+    vm::StrCat *ParseStrCat(ParseContext& ctx)
+    {
+        vm::StrCat *pInst = new vm::StrCat();
+        pInst->lineno = ctx.lineno;
+        return pInst;
+    }
 }
 
 namespace vm
@@ -492,7 +548,17 @@ namespace vm
     }
 
 
-    void Assembler::AddLabel(const std::string& name)
+    Assembler::Label *Assembler::GetLabel(const std::string& name)
+    {
+        auto it = labels.find(name);
+        if (it == labels.end())
+        {
+            return nullptr;
+        }
+        return &(it->second);
+    }
+
+    void Assembler::AddLabel(const std::string& name, int lineno)
     {
         auto it = labels.find(name);
         if (it == labels.end())
@@ -500,12 +566,14 @@ namespace vm
             Label label;
             label.name = name;
             label.target = pMachine->code.Size();
+            label.lineno = lineno;
             labels.insert(labels_t::value_type(name, label));
         }
         else
         {
             Label& label = it->second;
             label.target = pMachine->code.Size();
+            label.lineno = lineno;
             for each(Instruction *pInst in label.instructions)
             {
                 pInst->SetLabelTarget(label.target);
@@ -544,7 +612,7 @@ namespace vm
             ++ctx.lineno;
             if (strm.eof())
             {
-                return;
+                break;
             }
 
             if (line.size() == 0)
@@ -561,7 +629,14 @@ namespace vm
             if (s[0] == ':') // label
             {
                 std::string label = s.substr(1);
-                AddLabel(label);
+                Label *pLabel = GetLabel(label);
+                if (pLabel && pLabel->lineno >= 0)
+                {
+                    std::stringstream strm;
+                    strm << "Label " << label << " already defined at line " << pLabel->lineno;
+                    Throw(ctx, strm.str().c_str());
+                }
+                AddLabel(label, ctx.lineno);
             }
             else if (s == "function")
             {
@@ -572,7 +647,23 @@ namespace vm
                 }
                 machine.scriptfuncs.insert(Machine::scriptfuncs_t::value_type(name, machine.code.Size()));
                 // This means that function names and labels share the same namespace
-                AddLabel(name);
+                Label *pLabel = GetLabel(name);
+                if (pLabel && pLabel->lineno >= 0)
+                {
+                    std::stringstream strm;
+                    strm << "Function " << name << " already defined at line " << pLabel->lineno;
+                    Throw(ctx, strm.str().c_str());
+                }
+                AddLabel(name, ctx.lineno);
+            }
+            else if (s == "userfunction")
+            {
+                std::string name = CollectWord(ctx);
+                if (name.empty())
+                {
+                    Throw(ctx, "No function name");
+                }
+                AddLabel(name, ctx.lineno);
             }
             else if (s == "var")
             {
@@ -729,12 +820,29 @@ namespace vm
                 machine.code.AddInstruction( ParseDup(ctx));
             else if (s == "swap")
                 machine.code.AddInstruction( ParseSwap(ctx));
+            else if (s == "strcmp")
+                machine.code.AddInstruction( ParseStrComp(ctx));
+            else if (s == "substr")
+                machine.code.AddInstruction( ParseSubStr(ctx));
+            else if (s == "strcat")
+                machine.code.AddInstruction( ParseStrCat(ctx));
 			else
 			{
                 std::stringstream strm;
-                strm << "Unknown instruction " << s;
+                strm << "Unknown instruction " << s << " at line " << ctx.lineno;
                 throw std::exception (strm.str().c_str());
 			}
 		}
+        auto it = labels.begin();
+        for (; it != labels.end(); ++it)
+        {
+            Label &Label = it->second;
+            if (Label.lineno < 0)
+            {
+                std::stringstream strm;
+                strm << "Label " << Label.name << " is not defined";
+                throw std::exception (strm.str().c_str());
+            }
+        }
     }
 }

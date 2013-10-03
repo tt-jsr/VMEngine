@@ -80,7 +80,7 @@ namespace vm
 
     void Test::Dump(std::ostream& strm)
     {
-        strm << "test: " << std::endl;
+        strm << lineno << ":" << "test: " << std::endl;
     }
 
     /*****************************************************/
@@ -134,7 +134,7 @@ namespace vm
 
     void TestIm::Dump(std::ostream& strm)
     {
-        strm << "testim: ";
+        strm << lineno << ":" << "testim: ";
         pData->Dump(strm);
         strm << std::endl;
     }
@@ -157,7 +157,7 @@ namespace vm
 
     void Inc::Dump(std::ostream& strm)
     {
-        strm << "inc: " << std::endl;
+        strm << lineno << ":" << "inc: " << std::endl;
     }
 
     /*****************************************************/
@@ -178,7 +178,7 @@ namespace vm
 
     void Dec::Dump(std::ostream& strm)
     {
-        strm << "dec: " << std::endl;
+        strm << lineno << ":" << "dec: " << std::endl;
     }
 
     /*****************************************************/
@@ -207,7 +207,7 @@ namespace vm
 
     void Add::Dump(std::ostream& strm)
     {
-        strm << "add: " << std::endl;
+        strm << lineno << ":" << "add: " << std::endl;
     }
 
     /*****************************************************/
@@ -234,7 +234,7 @@ namespace vm
 
     void Subtract::Dump(std::ostream& strm)
     {
-        strm << "sub: " << std::endl;
+        strm << lineno << ":" << "sub: " << std::endl;
     }
 
     /*****************************************************/
@@ -265,7 +265,7 @@ namespace vm
 
     void Multiply::Dump(std::ostream& strm)
     {
-        strm << "mult: " << std::endl;
+        strm << lineno << ":" << "mult: " << std::endl;
     }
 
     /*****************************************************/
@@ -292,7 +292,7 @@ namespace vm
 
     void IntDivide::Dump(std::ostream& strm)
     {
-        strm << "idiv: " << std::endl;
+        strm << lineno << ":" << "idiv: " << std::endl;
     }
 
     /*****************************************************/
@@ -303,7 +303,7 @@ namespace vm
 
     void Except::Dump(std::ostream& strm)
     {
-        strm << "except: " << msg << std::endl;
+        strm << lineno << ":" << "except: " << msg << std::endl;
     }
 
     /*****************************************************/
@@ -314,7 +314,7 @@ namespace vm
 
     void Halt::Dump(std::ostream& strm)
     {
-        strm << "halt: " << std::endl;
+        strm << lineno << ":" << "halt: " << std::endl;
     }
 
     /*****************************************************/
@@ -332,7 +332,7 @@ namespace vm
 
     void JumpEQ::Dump(std::ostream& strm)
     {
-        strm << "jumpe: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpe: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -350,7 +350,7 @@ namespace vm
 
     void JumpNEQ::Dump(std::ostream& strm)
     {
-        strm << "jumpne: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpne: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -368,7 +368,7 @@ namespace vm
 
     void JumpGTEQ::Dump(std::ostream& strm)
     {
-        strm << "jumpgte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpgte: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -386,7 +386,7 @@ namespace vm
 
     void JumpGT::Dump(std::ostream& strm)
     {
-        strm << "jumpgte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpgte: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -404,7 +404,7 @@ namespace vm
 
     void JumpLTEQ::Dump(std::ostream& strm)
     {
-        strm << "jumpgte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpgte: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -422,7 +422,7 @@ namespace vm
 
     void JumpLT::Dump(std::ostream& strm)
     {
-        strm << "jumpgte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpgte: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -437,7 +437,7 @@ namespace vm
 
     void Jump::Dump(std::ostream& strm)
     {
-        strm << "jump: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jump: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -455,7 +455,7 @@ namespace vm
 
     void ContEQ::Dump(std::ostream& strm)
     {
-        strm << "conte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "conte: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -473,7 +473,7 @@ namespace vm
 
     void ContNEQ::Dump(std::ostream& strm)
     {
-        strm << "contne: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contne: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -491,7 +491,7 @@ namespace vm
 
     void ContGTEQ::Dump(std::ostream& strm)
     {
-        strm << "contlt: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contlt: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -509,7 +509,7 @@ namespace vm
 
     void ContGT::Dump(std::ostream& strm)
     {
-        strm << "contgt: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contgt: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -527,7 +527,7 @@ namespace vm
 
     void ContLTEQ::Dump(std::ostream& strm)
     {
-        strm << "contlteq: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contlteq: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -545,7 +545,7 @@ namespace vm
 
     void ContLT::Dump(std::ostream& strm)
     {
-        strm << "contlt: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contlt: " << ipTarget << std::endl;
     }
 
     /*****************************************************/
@@ -604,7 +604,7 @@ namespace vm
 
     void Call::Dump(std::ostream& strm)
     {
-        strm << "call: " << ip << std::endl;
+        strm << lineno << ":" << "call: " << ip << std::endl;
     }
 
     /*****************************************************/
@@ -628,7 +628,7 @@ namespace vm
 
     void Return::Dump(std::ostream& strm)
     {
-        strm << "return: " << std::endl;
+        strm << lineno << ":" << "return: " << std::endl;
     }
 
     /*****************************************************/
@@ -639,7 +639,7 @@ namespace vm
 
     void Break::Dump(std::ostream& strm)
     {
-        strm << "break" << std::endl;
+        strm << lineno << ":" << "break" << std::endl;
     }
 
     
@@ -663,7 +663,7 @@ namespace vm
 
     void LoadVariable::Dump(std::ostream& strm)
     {
-        strm << "load: " << name << std::endl;
+        strm << lineno << ":" << "load: " << name << std::endl;
     }
 
     /*****************************************************/
@@ -683,7 +683,7 @@ namespace vm
 
     void StoreVariable::Dump(std::ostream& strm)
     {
-        strm << "store: " << name << std::endl;
+        strm << lineno << ":" << "store: " << name << std::endl;
     }
 
     /*****************************************************/
@@ -721,7 +721,7 @@ namespace vm
 
     void Push::Dump(std::ostream& strm)
     {
-        strm << "push: ";
+        strm << lineno << ":" << "push: ";
 		pData->Dump(strm);
 		strm << std::endl;
     }
@@ -738,7 +738,7 @@ namespace vm
 
     void Pop::Dump(std::ostream& strm)
     {
-        strm << "pop " << std::endl;
+        strm << lineno << ":" << "pop " << std::endl;
     }
 
     /*****************************************************/
@@ -755,7 +755,7 @@ namespace vm
 
     void Dup::Dump(std::ostream& strm)
     {
-        strm << "dup " << std::endl;
+        strm << lineno << ":" << "dup " << std::endl;
     }
 
     /*****************************************************/
@@ -777,9 +777,11 @@ namespace vm
 
     void Swap::Dump(std::ostream& strm)
     {
-        strm << "swap " << std::endl;
+        strm << lineno << ":" << "swap " << std::endl;
     }
-/*
+
+    /*****************************************************/
+
     StrComp::StrComp()
 		:bIgnoreCase(false)
     {
@@ -798,32 +800,99 @@ namespace vm
             Throw(this, "stack underflow");
         } 
 
-        if (pData->type != DataOj::STRING)
+        String *s1 = pData1->GetString();
+        if (s1 == nullptr)
         {
             Throw(this, "Argument not a string");
         }
+        String *s2 = pData2->GetString();
+        if (s2 == nullptr)
+        {
+            Throw(this, "Argument not a string");
+        }
+
+        int r = 0;
+        if (bIgnoreCase)
+        {
+            r = _stricmp(s1->str.c_str(), s2->str.c_str());
+        }
+        else
+        {
+            r = s1->str.compare(s2->str);
+        }
+        machine.stack.Push(r);
     }
 
-    void StrComp::Dump(std::ostream&)
+    void StrComp::Dump(std::ostream& strm)
     {
-        strm << "Substr: ignorecase=" << bIgnoreCase << std::endl;
+        strm << lineno << ":" << "Substr: ignorecase=" << bIgnoreCase << std::endl;
     }
 
-    class Substr : public Instruction
-    {
+    /*******************************************************************/
     Substr::Substr()
-    :startPos(0)
-     ,length(0)
-        {}
+        :startPos(0)
+        ,length(0)
+    {}
 
     void Substr::Execute(Machine& machine)
     {
-
+        Data pData1 = machine.stack.Pop();
+        if (pData1 == nullptr)
+        {
+            Throw(this, "stack underflow");
+        }
+        String *s1 = pData1->GetString();
+        if (s1 == nullptr)
+        {
+            Throw(this, "Argument not a string");
+        }
+        size_t len = std::string::npos;
+        if (length != 0)
+        {
+            len = length;
+        }
+        std::string s = s1->str.substr(startPos, len);
+        machine.stack.Push(s);
     }
 
-    void Substr::Dump(std::ostream&)
+    void Substr::Dump(std::ostream& strm)
     {
-        strm << "Substr: startPos=" << startPos << " length=" << length << std::endl;
+        strm << lineno << ":" << "Substr: startPos=" << startPos << " length=" << length << std::endl;
     }
-    */
+
+    /*******************************************************************/
+
+    StrCat::StrCat()
+    {}
+
+    void StrCat::Execute(Machine& machine)
+    {
+        Data pData1 = machine.stack.Pop();
+        if (pData1 == nullptr)
+        {
+            Throw(this, "stack underflow");
+        }
+        String *s1 = pData1->GetString();
+        if (s1 == nullptr)
+        {
+            Throw(this, "Argument not a string");
+        }
+        Data pData2 = machine.stack.Pop();
+        if (pData2 == nullptr)
+        {
+            Throw(this, "stack underflow");
+        }
+        String *s2 = pData2->GetString();
+        if (s2 == nullptr)
+        {
+            Throw(this, "Argument not a string");
+        }
+        std::string s = s2->str + s1->str;
+        machine.stack.Push(s);
+    }
+
+    void StrCat::Dump(std::ostream& strm)
+    {
+        strm << lineno << ":" << "StrCat" << std::endl;
+    }
 }

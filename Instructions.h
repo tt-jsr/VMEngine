@@ -315,7 +315,7 @@ namespace vm
 
     /***************************************************************/
     // String instructions
-/*
+
     class StrComp : public Instruction
     {
     public:
@@ -336,6 +336,13 @@ namespace vm
         int startPos;
         int length;
     };
-    */
+
+    class StrCat : public Instruction
+    {
+    public:
+        StrCat();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+    };
 }
 
