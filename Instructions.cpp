@@ -296,6 +296,17 @@ namespace vm
     }
 
     /*****************************************************/
+    void Except::Execute(Machine& machine)
+    {
+        Throw(this, msg.c_str());
+    }
+
+    void Except::Dump(std::ostream& strm)
+    {
+        strm << "except: " << msg << std::endl;
+    }
+
+    /*****************************************************/
     void Halt::Execute (Machine& machine)
     {
         machine.registers.SetHalt();
@@ -768,4 +779,51 @@ namespace vm
     {
         strm << "swap " << std::endl;
     }
+/*
+    StrComp::StrComp()
+		:bIgnoreCase(false)
+    {
+	}
+
+    void StrComp::Execute(Machine& machine)
+    {
+        Data pData1 = machine.stack.Pop();
+        if (pData1 == nullptr)
+        {
+            Throw(this, "stack underflow");
+        }
+        Data pData2 = machine.stack.Pop();
+        if (pData2 == nullptr)
+        {
+            Throw(this, "stack underflow");
+        } 
+
+        if (pData->type != DataOj::STRING)
+        {
+            Throw(this, "Argument not a string");
+        }
+    }
+
+    void StrComp::Dump(std::ostream&)
+    {
+        strm << "Substr: ignorecase=" << bIgnoreCase << std::endl;
+    }
+
+    class Substr : public Instruction
+    {
+    Substr::Substr()
+    :startPos(0)
+     ,length(0)
+        {}
+
+    void Substr::Execute(Machine& machine)
+    {
+
+    }
+
+    void Substr::Dump(std::ostream&)
+    {
+        strm << "Substr: startPos=" << startPos << " length=" << length << std::endl;
+    }
+    */
 }

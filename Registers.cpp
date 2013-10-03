@@ -27,6 +27,7 @@ namespace vm
         strm << "gt: " << gt << std::endl;
         strm << "halt: " << halt << std::endl;
         strm << "nargs: " << nargs << std::endl;
+        strm << "totalInstructions: " << totalInstructions << std::endl;
     }
 
     void Registers::Restart()
@@ -35,6 +36,7 @@ namespace vm
         halt = false;
         ip = 0;
         nargs = 0;
+        totalInstructions = 0;
     }
 
     void Registers::ClearFlags()

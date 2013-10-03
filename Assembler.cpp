@@ -91,7 +91,7 @@ namespace
             return false;
         }
 
-        n = strtol(s.c_str(), nullptr, 10);
+        n = strtol(s.c_str(), nullptr, 0);
         return true;
     }
 
@@ -177,6 +177,20 @@ namespace
         vm::Data p = CollectData(ctx);
         vm::TestIm *pInst = new vm::TestIm(p);
         pInst->lineno = ctx.lineno;
+        return pInst;
+    }
+
+    vm::Except *ParseExcept(ParseContext& ctx)
+    {
+        SkipWS(ctx);
+        std::string s = CollectQuoted(ctx);
+        if (s.empty())
+        {
+            Throw(ctx, "Expected message");
+        }
+        vm::Except *pInst = new vm::Except();
+        pInst->lineno = ctx.lineno;
+        pInst->msg = s;
         return pInst;
     }
 
@@ -573,7 +587,7 @@ namespace vm
                 else
                 {
                     std::string s = CollectWord(ctx);
-                    int n = strtol(s.c_str(), nullptr, 10);
+                    int n = strtol(s.c_str(), nullptr, 0);
                     pData = DataObj::Create(n);
                 }
                 machine.StoreGlobalVariable(name, pData);
@@ -583,6 +597,10 @@ namespace vm
                 machine.code.AddInstruction( ParseTest(ctx));
             else if (s == "testim")
                 machine.code.AddInstruction( ParseTestIm(ctx));
+            else if(s == "except")
+            {
+                machine.code.AddInstruction( ParseExcept(ctx) );
+            }
             else if (s == "jumpe")
             {
                 std::string targetName;

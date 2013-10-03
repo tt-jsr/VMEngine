@@ -41,6 +41,15 @@ namespace vm
 
     /*********************************************/
     // Control
+    class Except : public Instruction
+    {
+	public:
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+
+        std::string msg;
+    };
+
     class Halt : public Instruction
 	{
         void Execute(Machine& machine);
@@ -309,8 +318,23 @@ namespace vm
 /*
     class StrComp : public Instruction
     {
+    public:
+        StrComp();
         void Execute(Machine& machine);
         void Dump(std::ostream&);
+
+        bool bIgnoreCase;
+    };
+
+    class Substr : public Instruction
+    {
+    public:
+        Substr();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+
+        int startPos;
+        int length;
     };
     */
 }
