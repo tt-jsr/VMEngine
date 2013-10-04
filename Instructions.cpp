@@ -590,8 +590,8 @@ namespace vm
                 machine.stack.Push(pFunc->ret[i]);
             }
             pFunc->ret.clear();
-            machine.callstack.pop();
             int n = machine.callstack.top();
+            machine.callstack.pop();
             machine.registers.NArgs(n);
             machine.PopLocalScope();
         }
@@ -621,6 +621,7 @@ namespace vm
         machine.callstack.pop();
         machine.registers.IP(n);
         n = machine.callstack.top();
+        machine.callstack.pop();
         machine.registers.NArgs(n);
         machine.PopLocalScope();
 
