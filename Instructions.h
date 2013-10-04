@@ -126,18 +126,6 @@ namespace vm
         int ipTarget;
     };
 
-    class Call : public Instruction
-    {
-	public:
-        Call();
-        void Execute(Machine& machine);
-        void Dump(std::ostream&);
-        void SetLabelTarget(int n) {ip = n;}
-        int ip;
-        std::string funcname;
-        int nargs;
-    };
-        
     class ContEQ : public Instruction
     {
 	public:
@@ -198,6 +186,26 @@ namespace vm
         int ipTarget;
     };
 
+    class CallLibrary : public Instruction
+    {
+	public:
+        CallLibrary();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+        std::string funcname;
+    };
+
+    class Call : public Instruction
+    {
+	public:
+        Call();
+        void Execute(Machine& machine);
+        void Dump(std::ostream&);
+        void SetLabelTarget(int n) {ip = n;}
+        int ip;
+        std::string funcname;
+    };
+        
     class Return : public Instruction
     {
 	public:
@@ -309,38 +317,6 @@ namespace vm
     class Swap : public Instruction
     {
 	public:
-        void Execute(Machine& machine);
-        void Dump(std::ostream&);
-    };
-
-    /***************************************************************/
-    // String instructions
-
-    class StrComp : public Instruction
-    {
-    public:
-        StrComp();
-        void Execute(Machine& machine);
-        void Dump(std::ostream&);
-
-        bool bIgnoreCase;
-    };
-
-    class Substr : public Instruction
-    {
-    public:
-        Substr();
-        void Execute(Machine& machine);
-        void Dump(std::ostream&);
-
-        int startPos;
-        int length;
-    };
-
-    class StrCat : public Instruction
-    {
-    public:
-        StrCat();
         void Execute(Machine& machine);
         void Dump(std::ostream&);
     };

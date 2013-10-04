@@ -113,6 +113,15 @@ namespace
             return vm::DataObj::Create(n);
         }
         std::string s = CollectWord(ctx);
+        if (s == "true")
+        {
+            return vm::DataObj::Create(1);
+        }
+        if (s == "false")
+        {
+            return vm::DataObj::Create(0);
+        }
+
         return vm::DataObj::CreateVariable(s);
     }
 
@@ -363,26 +372,6 @@ namespace
         return pInst;
     }
 
-    vm::Call *ParseCall(ParseContext& ctx, std::string& targetName)
-    {
-        SkipWS(ctx);
-        int n = 0;
-        if (CollectInteger(ctx, n) == false)
-        {
-            Throw(ctx, "Invalid arg count");
-        }
-        targetName = CollectLabel(ctx);
-        if (targetName.size() == 0)
-        {
-            Throw(ctx, "Target name is empty");
-        }
-        vm::Call *pCall = new vm::Call();
-        pCall->lineno = ctx.lineno;
-        pCall->funcname = targetName;
-        pCall->nargs = n;
-        return pCall;
-    }
-
     vm::Halt *ParseHalt(ParseContext& ctx)
     {
         vm::Halt *pInst = new vm::Halt();
@@ -395,6 +384,33 @@ namespace
         vm::Break *pInst = new vm::Break();
         pInst->lineno = ctx.lineno;
         return pInst;
+    }
+
+    vm::CallLibrary *ParseCallLib(ParseContext& ctx)
+    {
+        std::string s = CollectWord(ctx);
+        if (s.empty())
+        {
+            Throw(ctx, "Expected library name");
+        }
+        vm::CallLibrary *pInst = new vm::CallLibrary();
+        pInst->funcname = s;
+        pInst->lineno = ctx.lineno;
+        return pInst;
+    }
+
+    vm::Call *ParseCall(ParseContext& ctx, std::string& targetName)
+    {
+        SkipWS(ctx);
+        targetName = CollectLabel(ctx);
+        if (targetName.size() == 0)
+        {
+            Throw(ctx, "Target name is empty");
+        }
+        vm::Call *pCall = new vm::Call();
+        pCall->lineno = ctx.lineno;
+        pCall->funcname = targetName;
+        return pCall;
     }
 
     vm::Return *ParseReturn(ParseContext& ctx)
@@ -474,62 +490,6 @@ namespace
     vm::Swap *ParseSwap(ParseContext& ctx)
     {
         vm::Swap *pInst = new vm::Swap();
-        pInst->lineno = ctx.lineno;
-        return pInst;
-    }
-
-    vm::StrComp *ParseStrComp(ParseContext& ctx)
-    {
-        std::string icase = CollectWord(ctx);
-        if (icase.empty())
-        {
-            Throw(ctx, "Missing case argument");
-        }
-        bool bCase = false;
-        if (icase == "true")
-        {
-            bCase = true;
-        }
-        else if (icase == "false")
-        {
-            bCase = false;
-        }
-        else
-        {
-            Throw(ctx, "Case argument must be \"true\" or \"false\"");
-        }
-
-        vm::StrComp *pInst = new vm::StrComp();
-        pInst->bIgnoreCase = bCase;
-        pInst->lineno = ctx.lineno;
-        return pInst;
-
-    }
-
-    vm::Substr *ParseSubStr(ParseContext& ctx)
-    {
-        int start = 0;
-        int length = 0;
-
-        if (CollectInteger(ctx, start) == false)
-        {
-            Throw(ctx, "Missing integer argument");
-        }
-
-        if (CollectInteger(ctx, length) == false)
-        {
-            Throw(ctx, "Missing integer argument");
-        }
-
-        vm::Substr *pInst = new vm::Substr();
-        pInst->startPos = start;
-        pInst->length = length;
-        return pInst;
-    }
-
-    vm::StrCat *ParseStrCat(ParseContext& ctx)
-    {
-        vm::StrCat *pInst = new vm::StrCat();
         pInst->lineno = ctx.lineno;
         return pInst;
     }
@@ -656,15 +616,6 @@ namespace vm
                 }
                 AddLabel(name, ctx.lineno);
             }
-            else if (s == "userfunction")
-            {
-                std::string name = CollectWord(ctx);
-                if (name.empty())
-                {
-                    Throw(ctx, "No function name");
-                }
-                AddLabel(name, ctx.lineno);
-            }
             else if (s == "var")
             {
                 std::string name = CollectWord(ctx);
@@ -783,6 +734,11 @@ namespace vm
                 AddLabelTarget(targetName, pInst);
                 machine.code.AddInstruction( pInst );
             }
+            else if (s == "calllib")
+            {
+                Instruction *pInst = ParseCallLib(ctx);
+                machine.code.AddInstruction(pInst);
+            }
             else if (s == "call")
             {
                 std::string targetName;
@@ -820,12 +776,6 @@ namespace vm
                 machine.code.AddInstruction( ParseDup(ctx));
             else if (s == "swap")
                 machine.code.AddInstruction( ParseSwap(ctx));
-            else if (s == "strcmp")
-                machine.code.AddInstruction( ParseStrComp(ctx));
-            else if (s == "substr")
-                machine.code.AddInstruction( ParseSubStr(ctx));
-            else if (s == "strcat")
-                machine.code.AddInstruction( ParseStrCat(ctx));
 			else
 			{
                 std::stringstream strm;

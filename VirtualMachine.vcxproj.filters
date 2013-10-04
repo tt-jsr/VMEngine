@@ -42,10 +42,10 @@
     <ClInclude Include="Assembler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Function.h">
+    <ClInclude Include="Allocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Allocator.h">
+    <ClInclude Include="Library.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -72,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Assembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Library.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

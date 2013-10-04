@@ -27,6 +27,36 @@ namespace vm
     {
         return Data(new Variable(s));
     }
+
+    bool DataObj::GetInt(int& n)
+    {
+        if (type != DataObj::INT)
+        {
+            return false;
+        }
+        n = ((Int *)this)->n;
+        return true;
+    }
+
+    bool DataObj::GetString(std::string& s)
+    {
+        if (type != DataObj::STRING)
+        {
+            return false;
+        }
+        s = ((String *)this)->str;
+        return true;
+    }
+
+    bool DataObj::GetVariable(std::string& s)
+    {
+        if (type != DataObj::VARIABLE)
+        {
+            return false;
+        }
+        s = ((Variable *)this)->name;
+        return true;
+    }
     /**********************************************************/
 
     String::String()

@@ -3,7 +3,6 @@
 #include "machine.h"
 #include "stdafx.h"
 #include "Data.h"
-#include "Function.h"
 
 namespace
 {
@@ -13,19 +12,20 @@ namespace
         {
             return pData;
         }
-        if (pData->type == vm::DataObj::INT)
+        if (pData->IsInt())
         {
             return pData;
         }
-        if (pData->type == vm::DataObj::STRING)
+        if (pData->IsString())
         {
             return pData;
         }
-        if (pData->type == vm::DataObj::VARIABLE)
+        if (pData->IsVariable())
         {
-            vm::Variable *pVar = pData->GetVariable();
+            std::string name;
+            pData->GetVariable(name);
             vm::Data p;
-            machine.GetVariable(pVar->name, p);
+            machine.GetVariable(name, p);
             return p;
         }
         return pData;
@@ -62,13 +62,19 @@ namespace vm
             Throw(this, "Cannot compare types");
         }
         int result = 0;
-        if (d1->type == DataObj::INT)
+        if (d1->IsInt())
         {
-            result = d1->GetInt()->n - d2->GetInt()->n;
+            int n1, n2;
+            d1->GetInt(n1);
+            d2->GetInt(n2);
+            result = n1 - n2 ;
         }
-        if (d1->type == DataObj::STRING)
+        if (d1->IsString())
         {
-            result = d1->GetString()->str.compare(d2->GetString()->str);
+            std::string s1, s2;
+            d1->GetString(s1);
+            d1->GetString(s2);
+            result = s1.compare(s2);
         }
         if (result < 0)
             machine.registers.SetLT();
@@ -116,13 +122,19 @@ namespace vm
             Throw(this, "Cannot compare types");
         }
         int result = 0;
-        if (d1->type == DataObj::INT)
+        if (d1->IsInt())
         {
-            result = d1->GetInt()->n - pConstant->GetInt()->n;
+            int n1, n2;
+            d1->GetInt(n1);
+            pConstant->GetInt(n2);
+            result = n1 - n2;
         }
-        if (d1->type == DataObj::STRING)
+        if (d1->IsString())
         {
-            result = d1->GetString()->str.compare(pConstant->GetString()->str);
+            std::string s1, s2;
+            d1->GetString(s1);
+            pConstant->GetString(s2);
+            result = s1.compare(s2);
         }
         if (result < 0)
             machine.registers.SetLT();
@@ -148,11 +160,11 @@ namespace vm
             Throw(this, "Stack underflow");
         }
 
-        if (d1->type != DataObj::INT)
+        if (d1->IsInt() == false)
         {
             Throw(this, "Cannot increment non-int");
         }
-        ++d1->GetInt()->n;
+        ++((Int *)d1.get())->n;
     }
 
     void Inc::Dump(std::ostream& strm)
@@ -169,11 +181,11 @@ namespace vm
             Throw(this, "Stack underflow");
         }
 
-        if (d1->type != DataObj::INT)
+        if (d1->IsInt() == false)
         {
             Throw(this, "Cannot decrement non-int");
         }
-        --d1->GetInt()->n;
+        --((Int *)d1.get())->n;
     }
 
     void Dec::Dump(std::ostream& strm)
@@ -195,12 +207,19 @@ namespace vm
 
         if (a1->type != a2->type)
         {
-            Throw(this, "Cannot add types");
+            Throw(this, "Cannot add different types");
+        }
+        if (a1->IsInt() == false)
+        {
+            Throw(this, "Cannot add non integers");
         }
 
-        if (a1->type == DataObj::INT)
+        if (a1->IsInt())
         {
-            int n = a1->GetInt()->n + a2->GetInt()->n;
+            int n1, n2;
+            a1->GetInt(n1);
+            a2->GetInt(n2);
+            int n = n1 + n2;
             machine.stack.Push(n);
         }
     }
@@ -213,21 +232,30 @@ namespace vm
     /*****************************************************/
     void Subtract::Execute(Machine& machine)
     {
-        Data d1 = machine.stack.Pop();
         Data d2 = machine.stack.Pop();
+        Data d1 = machine.stack.Pop();
         if (d1 == nullptr || d2 == nullptr)
         {
             Throw(this, "Stack underflow");
         }
         const Data a1 = ResolveVariable(machine, d1);
         const Data a2 = ResolveVariable(machine, d2);
+
         if (a1->type != a2->type)
         {
-            Throw(this, "Cannot subtract types");
+            Throw(this, "Cannot subtract different types");
         }
-        if (a1->type == DataObj::INT)
+        if (a1->IsInt() == false)
         {
-            int n = a1->GetInt()->n - a2->GetInt()->n;
+            Throw(this, "Cannot subtract non integers");
+        }
+
+        if (a1->IsInt())
+        {
+            int n1, n2;
+            a1->GetInt(n1);
+            a2->GetInt(n2);
+            int n = n1 - n2;
             machine.stack.Push(n);
         }
     }
@@ -244,21 +272,26 @@ namespace vm
         Data d2 = machine.stack.Pop();
         if (d1 == nullptr || d2 == nullptr)
         {
-            throw std::exception("Stack underflow");
+            Throw(this, "Stack underflow");
         }
         const Data a1 = ResolveVariable(machine, d1);
         const Data a2 = ResolveVariable(machine, d2);
+
         if (a1->type != a2->type)
         {
-            Throw(this, "Cannot add types");
+            Throw(this, "Cannot multiply different types");
         }
-        if (a1->type == DataObj::STRING)
+        if (a1->IsInt() == false)
         {
-            Throw(this, "Cannot multiply strings");
+            Throw(this, "Cannot multiply non integers");
         }
-        if (a1->type == DataObj::INT)
+
+        if (a1->IsInt())
         {
-            int n = a1->GetInt()->n * a2->GetInt()->n;
+            int n1, n2;
+            a1->GetInt(n1);
+            a2->GetInt(n2);
+            int n = n1 * n2;
             machine.stack.Push(n);
         }
     }
@@ -271,21 +304,30 @@ namespace vm
     /*****************************************************/
     void IntDivide::Execute(Machine& machine)
     {
-        Data d1 = machine.stack.Pop();
         Data d2 = machine.stack.Pop();
+        Data d1 = machine.stack.Pop();
         if (d1 == nullptr || d2 == nullptr)
         {
             Throw(this, "Stack underflow");
         }
         const Data a1 = ResolveVariable(machine, d1);
         const Data a2 = ResolveVariable(machine, d2);
+
         if (a1->type != a2->type)
         {
-            Throw(this, "Cannot add types");
+            Throw(this, "Cannot divide different types");
         }
-        if (a1->type == DataObj::INT)
+        if (a1->IsInt() == false)
         {
-            int n = a1->GetInt()->n / a2->GetInt()->n;
+            Throw(this, "Cannot divide non integers");
+        }
+
+        if (a1->IsInt())
+        {
+            int n1, n2;
+            a1->GetInt(n1);
+            a2->GetInt(n2);
+            int n = n1 / n2;
             machine.stack.Push(n);
         }
     }
@@ -547,59 +589,37 @@ namespace vm
     {
         strm << lineno << ":" << "contlt: " << ipTarget << std::endl;
     }
+    /*****************************************************/
+    CallLibrary::CallLibrary()
+    {}
+
+    void CallLibrary::Execute (Machine& machine)
+    {
+        auto it = machine.library.find(funcname);
+        if (it == machine.library.end())
+        {
+            std::stringstream strm;
+            strm << "Library function " << funcname << " not found";
+            Throw(this, strm.str().c_str());
+        }
+        it->second(machine);
+    }
+
+    void CallLibrary::Dump(std::ostream& strm)
+    {
+        strm << lineno << ":" << "calllib: " << funcname << std::endl;
+    }
 
     /*****************************************************/
     Call::Call()
     :ip(0)
-     , nargs(0)
     {}
 
     void Call::Execute (Machine& machine)
     {
         machine.PushLocalScope();
-        machine.callstack.push(machine.registers.NArgs());
-        machine.registers.NArgs(nargs);
-        if (ip <= 0)
-        {
-            // User defined function
-            Function *pFunc = machine.LookupFunction(funcname);
-            if (pFunc == nullptr)
-            {
-                std::stringstream strm;
-                strm << "Function " << funcname << " not found";
-                Throw(this, strm.str().c_str());
-            }
-            if (nargs > machine.stack.Size())
-            {
-                Throw(this, "Stack underflow");
-            }
-            pFunc->args.clear();
-            for (int i = 0; i < nargs; ++i)
-            {
-                Data p = machine.stack.Pop();
-                pFunc->args.push_back(p);
-            }
-            pFunc->pMachine = &machine;
-            pFunc->OnExecute();
-            // Cleanup here, user functions don't have a Return statement
-            pFunc->args.clear();
-
-            // Now push any return values onto the stack
-            for (int i = 0; i < (int)pFunc->ret.size(); i++)
-            {
-                machine.stack.Push(pFunc->ret[i]);
-            }
-            pFunc->ret.clear();
-            int n = machine.callstack.top();
-            machine.callstack.pop();
-            machine.registers.NArgs(n);
-            machine.PopLocalScope();
-        }
-        else
-        {
-            machine.callstack.push(machine.registers.IP());
-            machine.registers.IP(ip);
-        }
+        machine.callstack.push(machine.registers.IP());
+        machine.registers.IP(ip);
     }
 
     void Call::Dump(std::ostream& strm)
@@ -620,9 +640,6 @@ namespace vm
         int n = machine.callstack.top();
         machine.callstack.pop();
         machine.registers.IP(n);
-        n = machine.callstack.top();
-        machine.callstack.pop();
-        machine.registers.NArgs(n);
         machine.PopLocalScope();
 
     }
@@ -780,120 +797,4 @@ namespace vm
     {
         strm << lineno << ":" << "swap " << std::endl;
     }
-
-    /*****************************************************/
-
-    StrComp::StrComp()
-		:bIgnoreCase(false)
-    {
-	}
-
-    void StrComp::Execute(Machine& machine)
-    {
-        Data pData1 = machine.stack.Pop();
-        if (pData1 == nullptr)
-        {
-            Throw(this, "stack underflow");
-        }
-        Data pData2 = machine.stack.Pop();
-        if (pData2 == nullptr)
-        {
-            Throw(this, "stack underflow");
-        } 
-
-        String *s1 = pData1->GetString();
-        if (s1 == nullptr)
-        {
-            Throw(this, "Argument not a string");
-        }
-        String *s2 = pData2->GetString();
-        if (s2 == nullptr)
-        {
-            Throw(this, "Argument not a string");
-        }
-
-        int r = 0;
-        if (bIgnoreCase)
-        {
-            r = _stricmp(s1->str.c_str(), s2->str.c_str());
-        }
-        else
-        {
-            r = s1->str.compare(s2->str);
-        }
-        machine.stack.Push(r);
-    }
-
-    void StrComp::Dump(std::ostream& strm)
-    {
-        strm << lineno << ":" << "Substr: ignorecase=" << bIgnoreCase << std::endl;
-    }
-
-    /*******************************************************************/
-    Substr::Substr()
-        :startPos(0)
-        ,length(0)
-    {}
-
-    void Substr::Execute(Machine& machine)
-    {
-        Data pData1 = machine.stack.Pop();
-        if (pData1 == nullptr)
-        {
-            Throw(this, "stack underflow");
-        }
-        String *s1 = pData1->GetString();
-        if (s1 == nullptr)
-        {
-            Throw(this, "Argument not a string");
-        }
-        size_t len = std::string::npos;
-        if (length != 0)
-        {
-            len = length;
-        }
-        std::string s = s1->str.substr(startPos, len);
-        machine.stack.Push(s);
-    }
-
-    void Substr::Dump(std::ostream& strm)
-    {
-        strm << lineno << ":" << "Substr: startPos=" << startPos << " length=" << length << std::endl;
-    }
-
-    /*******************************************************************/
-
-    StrCat::StrCat()
-    {}
-
-    void StrCat::Execute(Machine& machine)
-    {
-        Data pData1 = machine.stack.Pop();
-        if (pData1 == nullptr)
-        {
-            Throw(this, "stack underflow");
-        }
-        String *s1 = pData1->GetString();
-        if (s1 == nullptr)
-        {
-            Throw(this, "Argument not a string");
-        }
-        Data pData2 = machine.stack.Pop();
-        if (pData2 == nullptr)
-        {
-            Throw(this, "stack underflow");
-        }
-        String *s2 = pData2->GetString();
-        if (s2 == nullptr)
-        {
-            Throw(this, "Argument not a string");
-        }
-        std::string s = s2->str + s1->str;
-        machine.stack.Push(s);
-    }
-
-    void StrCat::Dump(std::ostream& strm)
-    {
-        strm << lineno << ":" << "StrCat" << std::endl;
-    }
-}
+ }

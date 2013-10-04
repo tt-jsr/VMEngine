@@ -75,8 +75,8 @@
     <ClInclude Include="Assembler.h" />
     <ClInclude Include="Code.h" />
     <ClInclude Include="Data.h" />
-    <ClInclude Include="Function.h" />
     <ClInclude Include="Instructions.h" />
+    <ClInclude Include="Library.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="Registers.h" />
     <ClInclude Include="DataStack.h" />
@@ -88,6 +88,7 @@
     <ClCompile Include="Code.cpp" />
     <ClCompile Include="Data.cpp" />
     <ClCompile Include="Instructions.cpp" />
+    <ClCompile Include="Library.cpp" />
     <ClCompile Include="machine.cpp" />
     <ClCompile Include="Registers.cpp" />
     <ClCompile Include="DataStack.cpp" />

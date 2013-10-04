@@ -9,7 +9,6 @@ namespace vm
       ,gt(false)
       ,lt(false)
       ,halt(false)
-      , nargs(0)
       ,totalInstructions(0)
     {
     }
@@ -26,7 +25,6 @@ namespace vm
         strm << "lt: " << lt << std::endl;
         strm << "gt: " << gt << std::endl;
         strm << "halt: " << halt << std::endl;
-        strm << "nargs: " << nargs << std::endl;
         strm << "totalInstructions: " << totalInstructions << std::endl;
     }
 
@@ -35,7 +33,6 @@ namespace vm
         ClearFlags();
         halt = false;
         ip = 0;
-        nargs = 0;
         totalInstructions = 0;
     }
 

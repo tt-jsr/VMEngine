@@ -4,10 +4,11 @@
 #include "Code.h"
 #include "Registers.h"
 #include "Allocator.h"
+#include <functional>
 
 namespace vm
 {
-    class Function;
+    class UserFunction;
     class Int;
     class String;
     class Variable;
@@ -27,10 +28,11 @@ namespace vm
         Code code;
         std::stack<int> callstack;
 
+        // Call a script function
         void Call(const std::string& fname, std::vector<Data >& args, std::vector<Data > ret);
 
-        bool RegisterFunction(const std::string& name, Function *);
-        Function *LookupFunction(const std::string& name);
+        // Register a library function
+        bool RegisterLibraryFunction(const std::string& name, std::function<void (Machine&)> &);
 
         // Get a variable using scoping rules
         bool GetVariable(const std::string& name, Data &);
@@ -52,18 +54,26 @@ namespace vm
         void PushLocalScope();
         void PopLocalScope();
         typedef std::map<std::string, Data > variablemap_t;
-        typedef std::map<std::string, Function *> functionmap_t;
         typedef std::vector<variablemap_t> variablescope_t;
         typedef std::map<std::string, int> scriptfuncs_t;
+        typedef std::map<std::string, std::function<void (Machine&)> > libfuncs_t;
+        // Global variables
         variablemap_t global_variables;
+
+        // Local variables
         variablescope_t local_variables;
+
+        // Script functions that C programs can call
         scriptfuncs_t scriptfuncs;
-        functionmap_t functions;
+
+        // Library functions
+        libfuncs_t library;
         Allocator<Int> intAllocator;
         Allocator<String> stringAllocator;
         Allocator<Variable> variableAllocator;
 
         friend class Call;
+        friend class CallLibrary;
         friend class Return;
         friend class Assembler;
     };

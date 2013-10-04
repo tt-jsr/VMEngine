@@ -2,12 +2,13 @@
 #include "machine.h"
 #include "Instructions.h"
 #include "Data.h"
+#include "Library.h"
 
 namespace vm
 {
     Machine::Machine(void)
     {
-        PushLocalScope();
+        InitLibrary(*this);
     }
 
 
@@ -77,7 +78,7 @@ namespace vm
         if (it == scriptfuncs.end())
         {
             std::stringstream strm;
-            strm << "Function " << fname << " not found";
+            strm << "UserFunction " << fname << " not found";
             throw std::exception(strm.str().c_str());
         }
         // Save the current IP
@@ -97,7 +98,6 @@ namespace vm
         // We use the call instruction to set everything up
         vm::Call call;
         call.ip = it->second;
-        call.nargs = args.size();
         call.Execute(*this);
 
         // The return statement will set the ip back to -1
@@ -119,20 +119,10 @@ namespace vm
         }
     }
 
-    bool Machine::RegisterFunction(const std::string& name, Function *pFunc)
+    bool Machine::RegisterLibraryFunction(const std::string& name, std::function<void (Machine&)>& f)
     {
-        auto p = functions.insert(functionmap_t::value_type(name, pFunc));
-        return p.second; 
-    }
-
-    Function *Machine::LookupFunction(const std::string& name)
-    {
-        auto it = functions.find(name);
-        if (it == functions.end())
-        {
-            return nullptr;
-        }
-        return it->second;
+        library[name] = f;
+        return true;
     }
 
     bool Machine::GetVariable(const std::string& name, Data & pData)
