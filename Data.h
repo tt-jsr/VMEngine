@@ -13,7 +13,7 @@ namespace vm
     class DataObj
     {
 	public:
-        enum Type {STRING, INT, VARIABLE};
+        enum Type {STRING, INT, VARIABLE, ARRAY};
         DataObj(Type t);
         Type type;
 
@@ -22,13 +22,16 @@ namespace vm
         bool GetInt(int&);
         bool GetString(std::string&);
         bool GetVariable(std::string&);
+        bool GetArray(std::vector<Data>&);
         bool IsString() const {return type == STRING;}
         bool IsInt() const {return type == INT;}
         bool IsVariable() const {return type == VARIABLE;}
+        bool IsArray() const {return type == ARRAY;}
         static Data Create(bool b);
         static Data Create(int n);
         static Data Create(const std::string&);
         static Data CreateVariable(const std::string&);
+        static Data Create(const std::vector<Data>&);
     };
 
     class String : public DataObj
@@ -64,5 +67,14 @@ namespace vm
         void Dump(std::ostream& strm);
     };
 
+    class Array : public DataObj
+    {
+    public:
+        Array();
+        Array(const std::vector<Data>& v);
+        Data Clone();
+        void Dump(std::ostream& strm);
+        std::vector<Data> items;
+    };
 }
 

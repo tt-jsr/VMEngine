@@ -221,8 +221,6 @@ namespace vm
         void Dump(std::ostream&);
     };
 
-
-
     /**********************************************************/
     // Arithmetic
     class Inc : public Instruction
@@ -264,6 +262,22 @@ namespace vm
     {
 	public:
         void Execute(Machine& machine);
+        void Dump(std::ostream&);
+    };
+
+    /*********************************************************/
+    // Logic
+    class And : public Instruction
+    {
+    public:
+        void Execute(Machine&);
+        void Dump(std::ostream&);
+    };
+
+    class Or : public Instruction
+    {
+    public:
+        void Execute(Machine&);
         void Dump(std::ostream&);
     };
 

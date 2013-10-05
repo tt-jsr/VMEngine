@@ -57,6 +57,11 @@ namespace vm
         stack.push_back(DataObj::Create(n));
     }
 
+    void DataStack::Push(const std::vector<Data>& v)
+    {
+        stack.push_back(DataObj::Create(v));
+	}
+
     Data DataStack::Pop()
     {
         if (stack.size() == 0)

@@ -28,6 +28,11 @@ namespace vm
         return Data(new Variable(s));
     }
 
+    Data DataObj::Create(const std::vector<Data>& d)
+    {
+        return Data(new Array(d));
+    }
+
     bool DataObj::GetInt(int& n)
     {
         if (type != DataObj::INT)
@@ -55,6 +60,16 @@ namespace vm
             return false;
         }
         s = ((Variable *)this)->name;
+        return true;
+    }
+
+    bool DataObj::GetArray(std::vector<Data>& vec)
+    {
+        if (type != DataObj::ARRAY)
+        {
+            return false;
+        }
+        vec = ((Array *)this)->items;
         return true;
     }
     /**********************************************************/
@@ -121,6 +136,26 @@ namespace vm
     void Variable::Dump(std::ostream& strm)
     {
         strm << "variable: " << name;
+    }
+
+    /**********************************************************/
+    Array::Array()
+        :DataObj(DataObj::ARRAY)
+    {}
+
+    Array::Array(const std::vector<Data>& v)
+        :DataObj(DataObj::ARRAY)
+         , items(v)
+    {}
+
+    Data Array::Clone()
+    {
+        return Data(new Array(items));
+    }
+
+    void Array::Dump(std::ostream& strm)
+    {
+        strm << "Array";
     }
 }
 

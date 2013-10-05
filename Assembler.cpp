@@ -462,6 +462,20 @@ namespace
         return pInst;
     }
 
+    vm::And *ParseAnd(ParseContext& ctx)
+    {
+        vm::And *pInst = new vm::And();
+        pInst->lineno = ctx.lineno;
+        return pInst;
+    }
+
+    vm::Or *ParseOr(ParseContext& ctx)
+    {
+        vm::Or *pInst = new vm::Or();
+        pInst->lineno = ctx.lineno;
+        return pInst;
+    }
+
     vm::LoadVariable *ParseLoadVariable(ParseContext& ctx)
     {
         SkipWS(ctx);
@@ -764,6 +778,10 @@ namespace vm
                 machine.code.AddInstruction( ParseMultiply(ctx));
             else if (s == "idiv")
                 machine.code.AddInstruction( ParseIntDivide(ctx));
+            else if (s == "or")
+                machine.code.AddInstruction( ParseOr(ctx));
+            else if (s == "and")
+                machine.code.AddInstruction( ParseAnd(ctx));
             else if (s == "load")
                 machine.code.AddInstruction( ParseLoadVariable(ctx));
             else if (s == "store")

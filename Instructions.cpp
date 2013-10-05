@@ -12,14 +12,6 @@ namespace
         {
             return pData;
         }
-        if (pData->IsInt())
-        {
-            return pData;
-        }
-        if (pData->IsString())
-        {
-            return pData;
-        }
         if (pData->IsVariable())
         {
             std::string name;
@@ -214,14 +206,11 @@ namespace vm
             Throw(this, "Cannot add non integers");
         }
 
-        if (a1->IsInt())
-        {
-            int n1, n2;
-            a1->GetInt(n1);
-            a2->GetInt(n2);
-            int n = n1 + n2;
-            machine.stack.Push(n);
-        }
+        int n1, n2;
+        a1->GetInt(n1);
+        a2->GetInt(n2);
+        int n = n1 + n2;
+        machine.stack.Push(n);
     }
 
     void Add::Dump(std::ostream& strm)
@@ -250,14 +239,11 @@ namespace vm
             Throw(this, "Cannot subtract non integers");
         }
 
-        if (a1->IsInt())
-        {
-            int n1, n2;
-            a1->GetInt(n1);
-            a2->GetInt(n2);
-            int n = n1 - n2;
-            machine.stack.Push(n);
-        }
+        int n1, n2;
+        a1->GetInt(n1);
+        a2->GetInt(n2);
+        int n = n1 - n2;
+        machine.stack.Push(n);
     }
 
     void Subtract::Dump(std::ostream& strm)
@@ -286,14 +272,11 @@ namespace vm
             Throw(this, "Cannot multiply non integers");
         }
 
-        if (a1->IsInt())
-        {
-            int n1, n2;
-            a1->GetInt(n1);
-            a2->GetInt(n2);
-            int n = n1 * n2;
-            machine.stack.Push(n);
-        }
+        int n1, n2;
+        a1->GetInt(n1);
+        a2->GetInt(n2);
+        int n = n1 * n2;
+        machine.stack.Push(n);
     }
 
     void Multiply::Dump(std::ostream& strm)
@@ -322,14 +305,11 @@ namespace vm
             Throw(this, "Cannot divide non integers");
         }
 
-        if (a1->IsInt())
-        {
-            int n1, n2;
-            a1->GetInt(n1);
-            a2->GetInt(n2);
-            int n = n1 / n2;
-            machine.stack.Push(n);
-        }
+        int n1, n2;
+        a1->GetInt(n1);
+        a2->GetInt(n2);
+        int n = n1 / n2;
+        machine.stack.Push(n);
     }
 
     void IntDivide::Dump(std::ostream& strm)
@@ -602,7 +582,14 @@ namespace vm
             strm << "Library function " << funcname << " not found";
             Throw(this, strm.str().c_str());
         }
-        it->second(machine);
+        try
+        {
+            it->second(machine);
+        }
+        catch (std::exception& ex)
+        {
+            Throw(this, ex.what());
+        }
     }
 
     void CallLibrary::Dump(std::ostream& strm)
@@ -647,6 +634,72 @@ namespace vm
     void Return::Dump(std::ostream& strm)
     {
         strm << lineno << ":" << "return: " << std::endl;
+    }
+
+    /*****************************************************/
+    void And::Execute(Machine& machine)
+    {
+        Data d1 = machine.stack.Pop();
+        Data d2 = machine.stack.Pop();
+        if (d1 == nullptr || d2 == nullptr)
+        {
+            Throw(this, "Stack underflow");
+        }
+        const Data a1 = ResolveVariable(machine, d1);
+        const Data a2 = ResolveVariable(machine, d2);
+
+        if (a1->type != a2->type)
+        {
+            Throw(this, "Cannot And different types");
+        }
+        if (a1->IsInt() == false)
+        {
+            Throw(this, "Cannot And non integers");
+        }
+
+        int n1, n2;
+        a1->GetInt(n1);
+        a2->GetInt(n2);
+        int n = n1 && n2;
+        machine.stack.Push(n);
+    }
+
+    void And::Dump(std::ostream& strm)
+    {
+        strm << lineno << ":" << "And" << std::endl;
+    }
+
+    /*****************************************************/
+    void Or::Execute(Machine& machine)
+    {
+        Data d1 = machine.stack.Pop();
+        Data d2 = machine.stack.Pop();
+        if (d1 == nullptr || d2 == nullptr)
+        {
+            Throw(this, "Stack underflow");
+        }
+        const Data a1 = ResolveVariable(machine, d1);
+        const Data a2 = ResolveVariable(machine, d2);
+
+        if (a1->type != a2->type)
+        {
+            Throw(this, "Cannot Or different types");
+        }
+        if (a1->IsInt() == false)
+        {
+            Throw(this, "Cannot Or non integers");
+        }
+
+        int n1, n2;
+        a1->GetInt(n1);
+        a2->GetInt(n2);
+        int n = n1 || n2;
+        machine.stack.Push(n);
+    }
+
+    void Or::Dump(std::ostream& strm)
+    {
+        strm << lineno << ":" << "Or" << std::endl;
     }
 
     /*****************************************************/

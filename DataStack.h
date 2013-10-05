@@ -15,6 +15,7 @@ namespace vm
         void Push(Data );
         void Push(int n);
         void Push(const std::string&);
+        void Push(const std::vector<Data>&);
         Data Pop();
         void Clear();
         int Tos();
