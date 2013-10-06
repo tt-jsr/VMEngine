@@ -38,8 +38,8 @@ namespace vm
     {
         strm << "**************************************" << std::endl;
         strm << "Next Instruction" << std::endl;
-        code.Get(registers.IP())->Dump(strm);
-        strm << std::endl << "Registers" << std::endl;
+        code.Get(registers.IP())->Dump(strm) << std::endl;
+        strm << "Registers" << std::endl;
         registers.Dump(strm);
         strm << std::endl << "Data stack" << std::endl;
         stack.Dump(strm);

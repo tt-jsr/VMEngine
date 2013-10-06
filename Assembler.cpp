@@ -31,6 +31,10 @@ namespace
             return line[pos];
         }
 
+        bool IsField() {
+			return line[pos] == '/';
+        }
+
         bool IsQuoted() {
 			return line[pos] == '\"';
         }
@@ -68,6 +72,7 @@ namespace
 
     std::string CollectWord(ParseContext&);
     std::string CollectQuoted(ParseContext&);
+    std::string CollectField(ParseContext&);
 
     void SkipWS(ParseContext& ctx)
     {
@@ -98,10 +103,15 @@ namespace
     vm::Data CollectData(ParseContext& ctx)
     {
         SkipWS(ctx);
+        if (ctx.IsField())
+        {
+            std::string s = CollectField(ctx);
+            return vm::DataObj::CreateField(s);
+        }
         if (ctx.IsQuoted())
         {
             std::string s = CollectQuoted(ctx);
-            return vm::DataObj::Create(s);
+            return vm::DataObj::CreateString(s);
         }
         if (ctx.IsDigit())
         {
@@ -110,16 +120,16 @@ namespace
             {
                 return nullptr;
             }
-            return vm::DataObj::Create(n);
+            return vm::DataObj::CreateInt(n);
         }
         std::string s = CollectWord(ctx);
         if (s == "true")
         {
-            return vm::DataObj::Create(1);
+            return vm::DataObj::CreateInt(1);
         }
         if (s == "false")
         {
-            return vm::DataObj::Create(0);
+            return vm::DataObj::CreateInt(0);
         }
 
         return vm::DataObj::CreateVariable(s);
@@ -154,6 +164,19 @@ namespace
             ctx.Nextc();
         }
         ctx.Nextc(); // consume the "
+        return strm.str();
+    }
+
+    std::string CollectField(ParseContext& ctx)
+    {
+        std::stringstream strm;
+        ctx.Nextc();  // consume the /
+        while (ctx.Getc() != '\0' && ctx.Getc() != '/')
+        {
+            strm << ctx.Getc();
+            ctx.Nextc();
+        }
+        ctx.Nextc(); // consume the /
         return strm.str();
     }
 
@@ -476,6 +499,20 @@ namespace
         return pInst;
     }
 
+    vm::Equal *ParseEqual(ParseContext& ctx)
+    {
+        vm::Equal *pInst = new vm::Equal();
+        pInst->lineno = ctx.lineno;
+        return pInst;
+    }
+
+    vm::NotEqual *ParseNotEqual(ParseContext& ctx)
+    {
+        vm::NotEqual *pInst = new vm::NotEqual();
+        pInst->lineno = ctx.lineno;
+        return pInst;
+    }
+
     vm::LoadVariable *ParseLoadVariable(ParseContext& ctx)
     {
         SkipWS(ctx);
@@ -638,13 +675,13 @@ namespace vm
                 if (ctx.IsQuoted())
                 {
                     std::string s = CollectQuoted(ctx);
-                    pData = DataObj::Create(s);
+                    pData = DataObj::CreateString(s);
                 }
                 else
                 {
                     std::string s = CollectWord(ctx);
                     int n = strtol(s.c_str(), nullptr, 0);
-                    pData = DataObj::Create(n);
+                    pData = DataObj::CreateInt(n);
                 }
                 machine.StoreGlobalVariable(name, pData);
             }
@@ -782,6 +819,10 @@ namespace vm
                 machine.code.AddInstruction( ParseOr(ctx));
             else if (s == "and")
                 machine.code.AddInstruction( ParseAnd(ctx));
+            else if (s == "eq")
+                machine.code.AddInstruction( ParseEqual(ctx));
+            else if (s == "neq")
+                machine.code.AddInstruction( ParseNotEqual(ctx));
             else if (s == "load")
                 machine.code.AddInstruction( ParseLoadVariable(ctx));
             else if (s == "store")

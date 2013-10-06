@@ -22,8 +22,7 @@ namespace vm
 		}
         for (int idx = (int)stack.size()-1; idx >= 0; --idx)
         {
-            stack[idx]->Dump(strm);
-			strm << std::endl;
+            stack[idx]->Dump(strm) << std::endl;
         }
     }
 
@@ -49,17 +48,17 @@ namespace vm
 
     void DataStack::Push(const std::string& s)
     {
-        stack.push_back(DataObj::Create(s));
+        stack.push_back(DataObj::CreateString(s));
     }
 
     void DataStack::Push(int n)
     {
-        stack.push_back(DataObj::Create(n));
+        stack.push_back(DataObj::CreateInt(n));
     }
 
     void DataStack::Push(const std::vector<Data>& v)
     {
-        stack.push_back(DataObj::Create(v));
+        stack.push_back(DataObj::CreateArray(v));
 	}
 
     Data DataStack::Pop()

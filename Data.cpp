@@ -7,18 +7,18 @@ namespace vm
         :type(t)
     {}
 
-    Data DataObj::Create(bool b)
+    Data DataObj::CreateBool(bool b)
     {
         int n = b ? 1 : 0;
         return Data(new Int(n));
     }
 
-    Data DataObj::Create(int n)
+    Data DataObj::CreateInt(int n)
     {
         return Data(new Int(n));
     }
 
-    Data DataObj::Create(const std::string& s)
+    Data DataObj::CreateString(const std::string& s)
     {
         return Data(new String(s));
     }
@@ -28,9 +28,14 @@ namespace vm
         return Data(new Variable(s));
     }
 
-    Data DataObj::Create(const std::vector<Data>& d)
+    Data DataObj::CreateArray(const std::vector<Data>& d)
     {
         return Data(new Array(d));
+    }
+
+    Data DataObj::CreateField(const std::string& d)
+    {
+        return Data(new Field(d));
     }
 
     bool DataObj::GetInt(int& n)
@@ -72,6 +77,16 @@ namespace vm
         vec = ((Array *)this)->items;
         return true;
     }
+
+    bool DataObj::GetField(std::string& tag)
+    {
+        if (type != DataObj::FIELD)
+        {
+            return false;
+        }
+        tag = ((Field *)this)->tag;
+        return true;
+    }
     /**********************************************************/
 
     String::String()
@@ -88,9 +103,10 @@ namespace vm
         return Data(new String(str));
     }
 
-    void String::Dump(std::ostream& strm)
+    std::ostream& String::Dump(std::ostream& strm)
     {
         strm << "string: " << str;
+        return strm;
     }
 
     /**********************************************************/
@@ -111,9 +127,10 @@ namespace vm
         return Data(new Int(n));
     }
 
-    void Int::Dump(std::ostream& strm)
+    std::ostream& Int::Dump(std::ostream& strm)
     {
         strm << "int: " << n;
+        return strm;
     }
 
 
@@ -133,9 +150,10 @@ namespace vm
         return Data(new Variable(name));
     }
 
-    void Variable::Dump(std::ostream& strm)
+    std::ostream& Variable::Dump(std::ostream& strm)
     {
         strm << "variable: " << name;
+        return strm;
     }
 
     /**********************************************************/
@@ -153,9 +171,32 @@ namespace vm
         return Data(new Array(items));
     }
 
-    void Array::Dump(std::ostream& strm)
+    std::ostream& Array::Dump(std::ostream& strm)
     {
         strm << "Array";
+        return strm;
+    }
+
+    /**********************************************************/
+    Field::Field()
+    :DataObj(DataObj::FIELD)
+    {}
+
+    Field::Field(const std::string& t)
+    :DataObj(DataObj::FIELD)
+     , tag(t)
+    {}
+
+
+    Data Field::Clone()
+    {
+        return Data(new Field(tag));
+    }
+
+    std::ostream& Field::Dump(std::ostream& strm)
+    {
+        strm << "field: " << tag;
+        return strm;
     }
 }
 

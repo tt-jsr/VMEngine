@@ -12,20 +12,22 @@ namespace vm
         virtual ~Instruction();
         virtual void Execute(Machine&) = 0;
         virtual void SetLabelTarget(int) {}
-        virtual void Dump(std::ostream&) {}
+        virtual std::ostream& Dump(std::ostream& strm) = 0;
     public:
         int lineno;
     };
 
     /********************************************/
     // Test and compare
+    // Does not alter the stack
     class Test : public Instruction
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
+    // Does not alter the stack
     class TestIm : public Instruction
     {
 	public:
@@ -35,7 +37,7 @@ namespace vm
         ~TestIm();
       
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         Data pData;
     };
 
@@ -45,7 +47,7 @@ namespace vm
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
 
         std::string msg;
     };
@@ -53,7 +55,7 @@ namespace vm
     class Halt : public Instruction
 	{
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
 	};
 
     class JumpEQ : public Instruction
@@ -61,7 +63,7 @@ namespace vm
 	public:
         JumpEQ();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -71,7 +73,7 @@ namespace vm
 	public:
         JumpNEQ();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -81,7 +83,7 @@ namespace vm
 	public:
         JumpGTEQ();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -91,7 +93,7 @@ namespace vm
 	public:
         JumpGT();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -101,7 +103,7 @@ namespace vm
 	public:
         JumpLTEQ();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -111,7 +113,7 @@ namespace vm
 	public:
         JumpLT();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -121,7 +123,7 @@ namespace vm
 	public:
         Jump();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -131,7 +133,7 @@ namespace vm
 	public:
         ContEQ();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -141,7 +143,7 @@ namespace vm
 	public:
         ContNEQ();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -151,7 +153,7 @@ namespace vm
 	public:
         ContGTEQ();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -161,7 +163,7 @@ namespace vm
 	public:
         ContGT();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -171,7 +173,7 @@ namespace vm
 	public:
         ContLTEQ();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -181,7 +183,7 @@ namespace vm
 	public:
         ContLT();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ipTarget = n;}
         int ipTarget;
     };
@@ -191,7 +193,7 @@ namespace vm
 	public:
         CallLibrary();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         std::string funcname;
     };
 
@@ -200,7 +202,7 @@ namespace vm
 	public:
         Call();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         void SetLabelTarget(int n) {ip = n;}
         int ip;
         std::string funcname;
@@ -211,14 +213,14 @@ namespace vm
 	public:
         Return();
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class Break : public Instruction
     {
     public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     /**********************************************************/
@@ -227,42 +229,42 @@ namespace vm
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class Dec : public Instruction
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class Add : public Instruction
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class Subtract : public Instruction
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class Multiply : public Instruction
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class IntDivide : public Instruction
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     /*********************************************************/
@@ -271,14 +273,28 @@ namespace vm
     {
     public:
         void Execute(Machine&);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class Or : public Instruction
     {
     public:
         void Execute(Machine&);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
+    };
+
+    class Equal : public Instruction
+    {
+    public:
+        void Execute(Machine&);
+        std::ostream& Dump(std::ostream&);
+    };
+
+    class NotEqual : public Instruction
+    {
+    public:
+        void Execute(Machine&);
+        std::ostream& Dump(std::ostream&);
     };
 
     /*********************************************************/
@@ -288,7 +304,7 @@ namespace vm
 	public:
         LoadVariable(const std::string& s);
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         std::string name;
     };
 
@@ -297,7 +313,7 @@ namespace vm
 	public:
         StoreVariable(const std::string& s);
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         std::string name;
     };
 
@@ -310,7 +326,7 @@ namespace vm
         ~Push();
 
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
         Data pData;
     };
 
@@ -318,21 +334,21 @@ namespace vm
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class Dup : public Instruction
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 
     class Swap : public Instruction
     {
 	public:
         void Execute(Machine& machine);
-        void Dump(std::ostream&);
+        std::ostream& Dump(std::ostream&);
     };
 }
 

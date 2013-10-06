@@ -18,7 +18,14 @@ namespace vm
         {
             std::string name;
             d->GetVariable(name);
-            machine.GetVariable(name, d);
+            machine.GetVariable(name, d); // Fall through in case it's a field
+        }
+        if (d->IsField())
+        {
+            std::string tag;
+            d->GetField(tag);
+            std::string value = machine.registers.input.GetFieldValue(tag);
+            return value;
         }
         if (d->IsString() == false)
         {
@@ -164,7 +171,7 @@ namespace vm
         {
             if (*p == delim[0])
             {
-                items.push_back(DataObj::Create(strm.str()));
+                items.push_back(DataObj::CreateString(strm.str()));
                 strm.str("");
             }
             else
@@ -175,7 +182,7 @@ namespace vm
         }
         if (strm.str().size() > 0)
         {
-            items.push_back(DataObj::Create(strm.str()));
+            items.push_back(DataObj::CreateString(strm.str()));
             strm.str();
         }
         machine.stack.Push(items);

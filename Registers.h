@@ -2,6 +2,23 @@
 
 namespace vm
 {
+    class FixMessage // Place holder
+	{
+    public:
+		std::string GetFieldValue(const std::string& tag) 
+        {
+            if (tag == "35")
+                return "8";
+            if (tag == "55")
+                return "6E";
+            if (tag == "200")
+                return "CME";
+            if (tag == "150")
+                return "1";
+            return "";
+        }
+    };
+
     class Registers
     {
     public:
@@ -33,6 +50,9 @@ namespace vm
         int IP() const {return ip;}
 
 		int TotalInstructions() {return totalInstructions;}
+
+        FixMessage input;
+        FixMessage output;
     private:
         int ip;
         bool lt;

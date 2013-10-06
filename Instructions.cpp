@@ -18,7 +18,14 @@ namespace
             pData->GetVariable(name);
             vm::Data p;
             machine.GetVariable(name, p);
-            return p;
+            // Fall through, it might be a field
+        }
+        if (pData->IsField())
+        {
+            std::string tag;
+            pData->GetField(tag);
+            std::string value = machine.registers.input.GetFieldValue(tag);
+            return vm::DataObj::CreateString(value);
         }
         return pData;
     }
@@ -76,20 +83,21 @@ namespace vm
             machine.registers.SetGT();
     }
 
-    void Test::Dump(std::ostream& strm)
+    std::ostream& Test::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "test: " << std::endl;
+        strm << lineno << ":" << "test";
+        return strm;
     }
 
     /*****************************************************/
     TestIm::TestIm(int n)
     {
-        pData = DataObj::Create(n);
+        pData = DataObj::CreateInt(n);
     }
 
     TestIm::TestIm(const std::string& s)
     {
-        pData = DataObj::Create(s);
+        pData = DataObj::CreateString(s);
     }
 
     TestIm::TestIm(Data p)
@@ -136,11 +144,10 @@ namespace vm
             machine.registers.SetGT();
     }
 
-    void TestIm::Dump(std::ostream& strm)
+    std::ostream& TestIm::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "testim: ";
-        pData->Dump(strm);
-        strm << std::endl;
+        strm << lineno << ":" << "testim" << pData->Dump(strm);
+        return strm;
     }
 
     /*****************************************************/
@@ -159,9 +166,10 @@ namespace vm
         ++((Int *)d1.get())->n;
     }
 
-    void Inc::Dump(std::ostream& strm)
+    std::ostream& Inc::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "inc: " << std::endl;
+        strm << lineno << ":" << "inc";
+        return strm;
     }
 
     /*****************************************************/
@@ -180,9 +188,10 @@ namespace vm
         --((Int *)d1.get())->n;
     }
 
-    void Dec::Dump(std::ostream& strm)
+    std::ostream& Dec::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "dec: " << std::endl;
+        strm << lineno << ":" << "dec";
+        return strm;
     }
 
     /*****************************************************/
@@ -213,9 +222,10 @@ namespace vm
         machine.stack.Push(n);
     }
 
-    void Add::Dump(std::ostream& strm)
+    std::ostream& Add::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "add: " << std::endl;
+        strm << lineno << ":" << "add";
+        return strm;
     }
 
     /*****************************************************/
@@ -246,9 +256,10 @@ namespace vm
         machine.stack.Push(n);
     }
 
-    void Subtract::Dump(std::ostream& strm)
+    std::ostream& Subtract::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "sub: " << std::endl;
+        strm << lineno << ":" << "sub";
+        return strm;
     }
 
     /*****************************************************/
@@ -279,9 +290,10 @@ namespace vm
         machine.stack.Push(n);
     }
 
-    void Multiply::Dump(std::ostream& strm)
+    std::ostream& Multiply::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "mult: " << std::endl;
+        strm << lineno << ":" << "mult";
+        return strm;
     }
 
     /*****************************************************/
@@ -312,9 +324,10 @@ namespace vm
         machine.stack.Push(n);
     }
 
-    void IntDivide::Dump(std::ostream& strm)
+    std::ostream& IntDivide::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "idiv: " << std::endl;
+        strm << lineno << ":" << "idiv";
+        return strm;
     }
 
     /*****************************************************/
@@ -323,9 +336,10 @@ namespace vm
         Throw(this, msg.c_str());
     }
 
-    void Except::Dump(std::ostream& strm)
+    std::ostream& Except::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "except: " << msg << std::endl;
+        strm << lineno << ":" << "except: " << msg;
+        return strm;
     }
 
     /*****************************************************/
@@ -334,9 +348,10 @@ namespace vm
         machine.registers.SetHalt();
     }
 
-    void Halt::Dump(std::ostream& strm)
+    std::ostream& Halt::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "halt: " << std::endl;
+        strm << lineno << ":" << "halt";
+        return strm;
     }
 
     /*****************************************************/
@@ -352,9 +367,10 @@ namespace vm
         }
     }
 
-    void JumpEQ::Dump(std::ostream& strm)
+    std::ostream& JumpEQ::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "jumpe: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpe: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -370,9 +386,10 @@ namespace vm
         }
     }
 
-    void JumpNEQ::Dump(std::ostream& strm)
+    std::ostream& JumpNEQ::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "jumpne: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpne: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -388,9 +405,10 @@ namespace vm
         }
     }
 
-    void JumpGTEQ::Dump(std::ostream& strm)
+    std::ostream& JumpGTEQ::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "jumpgte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpgte: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -406,9 +424,10 @@ namespace vm
         }
     }
 
-    void JumpGT::Dump(std::ostream& strm)
+    std::ostream& JumpGT::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "jumpgte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpgte: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -424,9 +443,10 @@ namespace vm
         }
     }
 
-    void JumpLTEQ::Dump(std::ostream& strm)
+    std::ostream& JumpLTEQ::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "jumpgte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpgte: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -442,9 +462,10 @@ namespace vm
         }
     }
 
-    void JumpLT::Dump(std::ostream& strm)
+    std::ostream& JumpLT::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "jumpgte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jumpgte: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -457,9 +478,10 @@ namespace vm
         machine.registers.IP(ipTarget);
     }
 
-    void Jump::Dump(std::ostream& strm)
+    std::ostream& Jump::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "jump: " << ipTarget << std::endl;
+        strm << lineno << ":" << "jump: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -475,9 +497,10 @@ namespace vm
         }
     }
 
-    void ContEQ::Dump(std::ostream& strm)
+    std::ostream& ContEQ::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "conte: " << ipTarget << std::endl;
+        strm << lineno << ":" << "conte: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -493,9 +516,10 @@ namespace vm
         }
     }
 
-    void ContNEQ::Dump(std::ostream& strm)
+    std::ostream& ContNEQ::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "contne: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contne: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -511,9 +535,10 @@ namespace vm
         }
     }
 
-    void ContGTEQ::Dump(std::ostream& strm)
+    std::ostream& ContGTEQ::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "contlt: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contlt: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -529,9 +554,10 @@ namespace vm
         }
     }
 
-    void ContGT::Dump(std::ostream& strm)
+    std::ostream& ContGT::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "contgt: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contgt: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -547,9 +573,10 @@ namespace vm
         }
     }
 
-    void ContLTEQ::Dump(std::ostream& strm)
+    std::ostream& ContLTEQ::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "contlteq: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contlteq: " << ipTarget;
+        return strm;
     }
 
     /*****************************************************/
@@ -565,9 +592,10 @@ namespace vm
         }
     }
 
-    void ContLT::Dump(std::ostream& strm)
+    std::ostream& ContLT::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "contlt: " << ipTarget << std::endl;
+        strm << lineno << ":" << "contlt: " << ipTarget;
+        return strm;
     }
     /*****************************************************/
     CallLibrary::CallLibrary()
@@ -592,9 +620,10 @@ namespace vm
         }
     }
 
-    void CallLibrary::Dump(std::ostream& strm)
+    std::ostream& CallLibrary::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "calllib: " << funcname << std::endl;
+        strm << lineno << ":" << "calllib: " << funcname;
+        return strm;
     }
 
     /*****************************************************/
@@ -609,9 +638,10 @@ namespace vm
         machine.registers.IP(ip);
     }
 
-    void Call::Dump(std::ostream& strm)
+    std::ostream& Call::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "call: " << ip << std::endl;
+        strm << lineno << ":" << "call: " << ip;
+        return strm;
     }
 
     /*****************************************************/
@@ -631,9 +661,10 @@ namespace vm
 
     }
 
-    void Return::Dump(std::ostream& strm)
+    std::ostream& Return::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "return: " << std::endl;
+        strm << lineno << ":" << "return";
+        return strm;
     }
 
     /*****************************************************/
@@ -664,9 +695,10 @@ namespace vm
         machine.stack.Push(n);
     }
 
-    void And::Dump(std::ostream& strm)
+    std::ostream& And::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "And" << std::endl;
+        strm << lineno << ":" << "and";
+        return strm;
     }
 
     /*****************************************************/
@@ -697,9 +729,107 @@ namespace vm
         machine.stack.Push(n);
     }
 
-    void Or::Dump(std::ostream& strm)
+    std::ostream& Or::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "Or" << std::endl;
+        strm << lineno << ":" << "or";
+        return strm;
+    }
+
+    /*****************************************************/
+    void Equal::Execute(Machine& machine)
+    {
+        Data d1 = machine.stack.Pop();
+        Data d2 = machine.stack.Pop();
+        if (d1 == nullptr || d2 == nullptr)
+        {
+            Throw(this, "Stack underflow");
+        }
+        const Data a1 = ResolveVariable(machine, d1);
+        const Data a2 = ResolveVariable(machine, d2);
+
+        if (a1->type != a2->type)
+        {
+            Throw(this, "Cannot test equality of different types");
+        }
+        if (a1->IsInt() == true)
+        {
+            int n1, n2;
+            a1->GetInt(n1);
+            a2->GetInt(n2);
+            bool b = n1 == n2;
+            machine.stack.Push(b);
+        }
+        else if (a1->IsString() == true)
+        {
+            std::string s1, s2;
+            a1->GetString(s1);
+            a2->GetString(s2);
+            bool b = s1 == s2;
+            machine.stack.Push(b);
+        }
+        else if (a1->IsArray() == true)
+        {
+            bool b = ((Array *)a1.get())->items == ((Array *)a2.get())->items;
+            machine.stack.Push(b);
+        }
+        else
+        {
+            Throw(this, "Unknown data type");
+        }
+    }
+
+    std::ostream& Equal::Dump(std::ostream& strm)
+    {
+        strm << lineno << ":" << "eq";
+        return strm;
+    }
+    /*****************************************************/
+    void NotEqual::Execute(Machine& machine)
+    {
+        Data d1 = machine.stack.Pop();
+        Data d2 = machine.stack.Pop();
+        if (d1 == nullptr || d2 == nullptr)
+        {
+            Throw(this, "Stack underflow");
+        }
+        const Data a1 = ResolveVariable(machine, d1);
+        const Data a2 = ResolveVariable(machine, d2);
+
+        if (a1->type != a2->type)
+        {
+            Throw(this, "Cannot test equality of different types");
+        }
+        if (a1->IsInt() == true)
+        {
+            int n1, n2;
+            a1->GetInt(n1);
+            a2->GetInt(n2);
+            bool b = n1 != n2;
+            machine.stack.Push(b);
+        }
+        else if (a1->IsString() == true)
+        {
+            std::string s1, s2;
+            a1->GetString(s1);
+            a2->GetString(s2);
+            bool b = s1 != s2;
+            machine.stack.Push(b);
+        }
+        else if (a1->IsArray() == true)
+        {
+            bool b = ((Array *)a1.get())->items != ((Array *)a2.get())->items;
+            machine.stack.Push(b);
+        }
+        else
+        {
+            Throw(this, "Unknown data type");
+        }
+    }
+
+    std::ostream& NotEqual::Dump(std::ostream& strm)
+    {
+        strm << lineno << ":" << "neq";
+        return strm;
     }
 
     /*****************************************************/
@@ -708,9 +838,10 @@ namespace vm
         return;
     }
 
-    void Break::Dump(std::ostream& strm)
+    std::ostream& Break::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "break" << std::endl;
+        strm << lineno << ":" << "break";
+        return strm;
     }
 
     
@@ -732,9 +863,10 @@ namespace vm
         machine.stack.Push(pData->Clone());
     }
 
-    void LoadVariable::Dump(std::ostream& strm)
+    std::ostream& LoadVariable::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "load: " << name << std::endl;
+        strm << lineno << ":" << "load: " << name;
+        return strm;
     }
 
     /*****************************************************/
@@ -752,20 +884,21 @@ namespace vm
         machine.StoreVariable(name, pData);
     }
 
-    void StoreVariable::Dump(std::ostream& strm)
+    std::ostream& StoreVariable::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "store: " << name << std::endl;
+        strm << lineno << ":" << "store: " << name;
+        return strm;
     }
 
     /*****************************************************/
     Push::Push(int n)
     {
-        pData = DataObj::Create(n);
+        pData = DataObj::CreateInt(n);
     }
 
     Push::Push(const std::string& s)
     {
-        pData = DataObj::Create(s);
+        pData = DataObj::CreateString(s);
     }
 
     Push::Push(Data p)
@@ -790,11 +923,10 @@ namespace vm
         machine.stack.Push(pData->Clone());
     }
 
-    void Push::Dump(std::ostream& strm)
+    std::ostream& Push::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "push: ";
-		pData->Dump(strm);
-		strm << std::endl;
+        strm << lineno << ":" << "push: " << pData->Dump(strm);
+        return strm;
     }
 
     /*****************************************************/
@@ -807,9 +939,10 @@ namespace vm
         }
     }
 
-    void Pop::Dump(std::ostream& strm)
+    std::ostream& Pop::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "pop " << std::endl;
+        strm << lineno << ":" << "pop";
+        return strm;
     }
 
     /*****************************************************/
@@ -824,9 +957,10 @@ namespace vm
         machine.stack.Push(pNew);
     }
 
-    void Dup::Dump(std::ostream& strm)
+    std::ostream& Dup::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "dup " << std::endl;
+        strm << lineno << ":" << "dup";
+        return strm;
     }
 
     /*****************************************************/
@@ -846,8 +980,9 @@ namespace vm
         machine.stack.Push(pData2);
     }
 
-    void Swap::Dump(std::ostream& strm)
+    std::ostream& Swap::Dump(std::ostream& strm)
     {
-        strm << lineno << ":" << "swap " << std::endl;
+        strm << lineno << ":" << "swap";
+        return strm;
     }
  }
